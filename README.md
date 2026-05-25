@@ -31,11 +31,11 @@ Ikuti langkah-langkah berikut untuk memasang proyek di komputer lokal tim pengem
 
 3. **Konfigurasi Database MySQL**
    - Di root folder proyek, temukan berkas bernama `.env`.
-   - Ubah nilai variabel `DATABASE_URL` dengan informasi kredensial MySQL lokal Anda. Contoh formatnya:
+   - Pastikan variabel `DATABASE_URL` sudah mengarah ke database `db_kkn_bidan` lokal Anda:
      ```env
-     DATABASE_URL="mysql://[username]:[password]@localhost:3306/[nama_database]"
+     DATABASE_URL="mysql://root:@localhost:3306/db_kkn_bidan"
      ```
-     *Ganti `[username]`, `[password]`, dan `[nama_database]` dengan setelan MySQL Anda (default XAMPP biasanya `root` tanpa password).*
+     *Catatan: Anda dapat menyesuaikan port, username (`root`), dan password jika setelan MySQL lokal Anda berbeda dari bawaan standard XAMPP.*
 
 4. **Jalankan Development Server**
    Mulai server pengembangan lokal:
@@ -50,43 +50,30 @@ Ikuti langkah-langkah berikut untuk memasang proyek di komputer lokal tim pengem
 
 ---
 
-## 🗄️ Langkah Migrasi Database (Database Migrations)
+## 🗄️ Cetak Biru Database & Langkah Migrasi (Database & Migrations)
 
-Proyek ini telah dilengkapi dengan **Prisma ORM** yang dikonfigurasikan menggunakan MySQL. Karena rancangan tabel database Anda belum dibuat, ikuti panduan berikut saat tim Anda siap merancang basis data:
+Proyek ini telah dilengkapi dengan rancangan **6 tabel relasional** berbasis **MySQL** di dalam berkas [prisma/schema.prisma](file:///d:/Kuliah/semester6/KKNbidan/prisma/schema.prisma) yang mendukung sistem Point of Sale (POS) kasir, keluwesan kategori tindakan, serta penghitungan Harga Pokok Jasa (HPP/HPJ) untuk pelaporan laba rugi.
 
-1. **Definisikan Skema Tabel (Models)**
-   Buka berkas [prisma/schema.prisma](file:///d:/Kuliah/semester6/KKNbidan/prisma/schema.prisma). Tambahkan model tabel Anda di bagian bawah. Contoh menambahkan tabel Transaksi:
-   ```prisma
-   model Transaksi {
-     id        Int      @id @default(autoincrement())
-     tanggal   DateTime @default(now())
-     jumlah    Float
-     keterangan String?
-   }
-   ```
+### 1. Struktur Tabel yang Tersedia:
+- **`Pasien`**: Menyimpan biodata pasien. Kolom `tanggalLahir` dan `alamat` disetel *nullable* (opsional) agar mempermudah kasir menginput data secara cepat (*Skenario Pasien Umum/Anonim*).
+- **`KategoriTerapi`**: Tabel dinamis kategori tindakan medis (misal: Hamil, Persalinan, KB). Bidan dapat melakukan CRUD penuh untuk menambah kategori baru langsung melalui aplikasi tanpa perlu coding ulang.
+- **`Terapi`**: Katalog master layanan/tindakan medis. Dilengkapi kolom `harga` (harga jual) dan `hargaPokok` (modal pengeluaran layanan/HPP) untuk pelaporan keuangan.
+- **`MetodePembayaran`**: Tabel dinamis metode pembayaran (misal: Tunai, QRIS, Transfer BCA). Mendukung CRUD penuh.
+- **`Transaksi`**: Invoice POS Header. Dirancang **hanya mendukung Create & Read** (tanpa Update/Delete) untuk mencegah manipulasi keuangan/fraud.
+- **`DetailTransaksi`**: Rincian transaksi (*line items*). Menyimpan *snapshot* `hargaJual` dan `hargaPokok` historis saat transaksi terjadi agar pelaporan keuntungan tetap konsisten di masa depan.
 
-2. **Jalankan Perintah Migrasi**
-   Buka terminal dan jalankan perintah berikut untuk membuat migrasi SQL dan menyinkronkan tabel secara otomatis ke MySQL:
-   ```bash
-   npx prisma migrate dev --name nama_migrasi_anda
-   ```
+### 2. Cara Melakukan Migrasi ke Database Lokal:
+Setelah Anda membuat database kosong bernama `db_kkn_bidan` di phpMyAdmin, jalankan perintah di bawah ini pada terminal proyek untuk membuat seluruh tabel dan relasinya secara otomatis:
+```bash
+npx prisma migrate dev --name inisialisasi_tabel_sikabid
+```
 
-3. **Gunakan Prisma Client di Server API**
-   Untuk melakukan query ke database MySQL dari API Next.js, impor file `lib/prisma.js`. Contoh penggunaan di API route:
-   ```javascript
-   import prisma from '@/lib/prisma';
-   
-   export async function GET() {
-     const data = await prisma.transaksi.findMany();
-     return Response.json(data);
-   }
-   ```
-
-4. **Buka Prisma Studio (Database GUI)**
-   Gunakan GUI database bawaan Prisma untuk mengelola isi data MySQL secara visual melalui browser:
-   ```bash
-   npx prisma studio
-   ```
+### 3. Cara Mengakses Data secara Visual (Prisma Studio)
+Untuk melihat, memasukkan, atau mengedit data tabel database (seperti Pasien, Terapi, KategoriTerapi) secara langsung melalui antarmuka web GUI, jalankan:
+```bash
+npx prisma studio
+```
+*Atau Anda juga bisa membukanya secara normal seperti biasa melalui **phpMyAdmin**.*
 
 ---
 
