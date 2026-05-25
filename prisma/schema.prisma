@@ -7,103 +7,25 @@ generator client {
 
 datasource db {
   provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
-// ==========================================
-// 1. DATA PASIEN
-// ==========================================
+//======= tabel kkn bidan ============
+
 model Pasien {
   id           Int         @id @default(autoincrement())
-  nama         String      @db.VarChar(100)
-  tanggalLahir DateTime?   @db.Date
-  alamat       String?     @db.Text
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  transaksi    Transaksi[]
-
-  @@map("pasien")
+  nama         String
+  tanggalLahir String      
+  alamat       String
+  transaksi    Transaksi[] 
 }
 
-// ==========================================
-// 2. TABEL KATEGORI TERAPI (Dinamis untuk CRUD Bidan)
-// ==========================================
-model KategoriTerapi {
-  id        Int      @id @default(autoincrement())
-  nama      String   @unique @db.VarChar(100)
-  deskripsi String?  @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  terapi    Terapi[]
-
-  @@map("kategori_terapi")
-}
-
-// ==========================================
-// 3. MASTER DATA TERAPI (Katalog Layanan & Harga)
-// ==========================================
-model Terapi {
-  id              Int               @id @default(autoincrement())
-  nama            String            @db.VarChar(100)
-  kategoriId      Int
-  kategori        KategoriTerapi    @relation(fields: [kategoriId], references: [id], onDelete: Restrict)
-  harga           Int               // Harga jual ke pasien
-  hargaPokok      Int               // Modal/HPP bidan untuk layanan ini
-  deskripsi       String?           @db.Text
-  aktif           Boolean           @default(true)
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  detailTransaksi DetailTransaksi[]
-
-  @@map("terapi")
-}
-
-// ==========================================
-// 4. TABEL METODE PEMBAYARAN (Dinamis untuk CRUD Rekening/E-wallet)
-// ==========================================
-model MetodePembayaran {
-  id        Int         @id @default(autoincrement())
-  nama      String      @unique @db.VarChar(50)
-  aktif     Boolean     @default(true)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  transaksi Transaksi[]
-
-  @@map("metode_pembayaran")
-}
-
-// ==========================================
-// 5. TRANSAKSI (Invoice POS Header - Hanya Create & Read)
-// ==========================================
 model Transaksi {
-  id                 Int               @id @default(autoincrement())
-  nomorInvoice       String            @unique @db.VarChar(50)
-  tanggal            DateTime          @default(now())
-  pasienId           Int
-  pasien             Pasien            @relation(fields: [pasienId], references: [id], onDelete: Restrict)
-  totalHarga         Int               // Total tagihan
-  metodePembayaranId Int
-  metodePembayaran   MetodePembayaran  @relation(fields: [metodePembayaranId], references: [id], onDelete: Restrict)
-  catatan            String?           @db.Text
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
-  detailTransaksi    DetailTransaksi[]
-
-  @@map("transaksi")
-}
-
-// ==========================================
-// 6. DETAIL TRANSAKSI (Invoice POS Items Line - Hanya Create & Read)
-// ==========================================
-model DetailTransaksi {
-  id          Int       @id @default(autoincrement())
-  transaksiId Int
-  transaksi   Transaksi @relation(fields: [transaksiId], references: [id], onDelete: Cascade)
-  terapiId    Int
-  terapi      Terapi    @relation(fields: [terapiId], references: [id], onDelete: Restrict)
-  hargaJual   Int       // Snapshot harga jual saat transaksi
-  hargaPokok  Int       // Snapshot harga modal saat transaksi
-  jumlah      Int       @default(1)
-  subtotal    Int       // hargaJual * jumlah
-
-  @@map("detail_transaksi")
+  id           Int      @id @default(autoincrement())
+  tanggal      DateTime @default(now())
+  pasienId     Int
+  pasien       Pasien   @relation(fields: [pasienId], references: [id])
+  terapi       String   // hamil, persalinan, kb, imunisasi, komplementer, umum
+  pembayaran   String   // tunai, qris, tf
+  totalHarga   Float    @default(0)
 }
