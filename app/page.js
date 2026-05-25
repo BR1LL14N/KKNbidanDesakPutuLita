@@ -52,18 +52,9 @@ export default function Home() {
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 mb-4">
             Sistem Informasi <span className="gradient-text">Kasir & Keuangan Bidan</span>
           </h1>
-          <p className="text-base md:text-lg text-slate-600 max-w-2xl mx-auto mb-6">
+          <p className="text-base md:text-lg text-slate-600 max-w-2xl mx-auto">
             Kerangka Full-Stack monorepo telah terkonfigurasi menggunakan Next.js App Router, Tailwind CSS v4, dan Prisma ORM dengan MySQL Database driver.
           </p>
-          <div className="flex justify-center">
-            <a 
-              href="/dashboard" 
-              className="inline-flex items-center gap-2 px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl font-bold shadow-lg shadow-teal-600/10 hover:shadow-teal-600/20 transition-all text-sm group"
-            >
-              Masuk Dasbor Aplikasi POS Kasir
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </a>
-          </div>
         </header>
 
         {/* Status Grid */}
