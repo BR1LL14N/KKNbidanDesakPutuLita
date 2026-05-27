@@ -68,7 +68,13 @@ Setelah Anda membuat database kosong bernama `db_kkn_bidan` di phpMyAdmin, jalan
 npx prisma migrate dev --name inisialisasi_tabel_sikabid
 ```
 
-### 3. Cara Mengakses Data secara Visual (Prisma Studio)
+### 3. Cara Mengisi Data Awal (Seed Database)
+Untuk mempopulasikan database lokal dengan data awal (data pasien, kategori terapi, master katalog tindakan, metode pembayaran, serta 156 transaksi riil yang selaras dengan visual dashboard referensi), jalankan perintah berikut:
+```bash
+npx prisma db seed
+```
+
+### 4. Cara Mengakses Data secara Visual (Prisma Studio)
 Untuk melihat, memasukkan, atau mengedit data tabel database (seperti Pasien, Terapi, KategoriTerapi) secara langsung melalui antarmuka web GUI, jalankan:
 ```bash
 npx prisma studio
@@ -79,15 +85,15 @@ npx prisma studio
 
 ## 📂 Struktur Folder Blueprint
 
-Folder proyek telah diatur menggunakan struktur standar Next.js App Router:
+Folder proyek telah diatur menggunakan struktur standar Next.js App Router (TypeScript):
 
 - **`app/`**: Folder utama navigasi halaman (routing) dan API backend.
-  - **`app/page.js`**: Halaman utama / dashboard *welcome screen*.
-  - **`app/layout.js`**: Pembungkus layout global (font Outfit & setelan HTML).
-  - **`app/api/`**: Tempat mendefinisikan API Routes (misal: `app/api/hello/route.js`).
-- **`components/`**: Komponen UI kustom yang dapat digunakan kembali oleh tim.
-- **`lib/`**: Berkas helper, berisi file `prisma.js` (singleton instance untuk database).
-- **`prisma/`**: Berkas konfigurasi skema Prisma (`schema.prisma`) dan folder pelacak migrasi SQL.
+  - **`app/page.tsx`**: Halaman utama / dashboard *welcome screen*.
+  - **`app/layout.tsx`**: Pembungkus layout global (font Outfit & setelan HTML).
+  - **`app/api/`**: Tempat mendefinisikan API Routes (misal: `app/api/hello/route.ts`).
+- **`components/`**: Komponen UI kustom yang modular (Livewire-style) untuk performa optimal dan minim re-render.
+- **`lib/`**: Berkas helper, berisi file `prisma.ts` (singleton instance database dengan adapter MariaDB) dan folder `controllers/` berisi query SQL terstruktur (TypeScript).
+- **`prisma/`**: Berkas konfigurasi skema Prisma (`schema.prisma`), berkas `seed.js` untuk data awal, dan folder pelacak migrasi SQL.
 - **`public/`**: Tempat menyimpan aset statis seperti gambar, ikon, atau logo.
 - **`.env`**: Konfigurasi variabel lingkungan untuk menyimpan kredensial database (ter-ignore dari git).
 
