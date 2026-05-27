@@ -1,0 +1,37 @@
+import { NextResponse } from 'next/server';
+import { getTerapiById, updateTerapi, deleteTerapi } from '../../../../lib/controllers/terapiController';
+
+interface RouteContext {
+  params: Promise<{ id: string }>;
+}
+
+export async function GET(request: Request, { params }: RouteContext) {
+  try {
+    const { id } = await params;
+    const data = await getTerapiById(id);
+    return NextResponse.json(data);
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 404 });
+  }
+}
+
+export async function PUT(request: Request, { params }: RouteContext) {
+  try {
+    const { id } = await params;
+    const body = await request.json();
+    const data = await updateTerapi(id, body);
+    return NextResponse.json(data);
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+}
+
+export async function DELETE(request: Request, { params }: RouteContext) {
+  try {
+    const { id } = await params;
+    const data = await deleteTerapi(id);
+    return NextResponse.json({ message: 'Tindakan terapi berhasil dihapus.', data });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+}
