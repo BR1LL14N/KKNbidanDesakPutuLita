@@ -54,6 +54,11 @@ export default function PasienTable({
 }: PasienTableProps) {
   // Pagination is fully local — page changes don't re-render the parent page
   const [currentPage, setCurrentPage] = useState(1);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const totalItems = pasienList.length;
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
@@ -174,40 +179,42 @@ export default function PasienTable({
       </div>
 
       {/* Pagination footer */}
-      <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-3">
-        <span className="text-[10px] text-slate-400 font-bold">
-          Menampilkan {totalItems > 0 ? indexOfFirst + 1 : 0}–{Math.min(indexOfLast, totalItems)} dari {totalItems} pasien
-        </span>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className="p-1.5 border border-slate-200 rounded-md bg-white hover:bg-slate-50 disabled:bg-slate-50 disabled:text-slate-300 disabled:cursor-not-allowed text-slate-500 transition-all"
-          >
-            <ChevronLeft className="w-3.5 h-3.5" />
-          </button>
-          {[...Array(totalPages)].map((_, i) => (
+      {mounted && (
+        <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-3">
+          <span className="text-[10px] text-slate-400 font-bold">
+            Menampilkan {totalItems > 0 ? indexOfFirst + 1 : 0}–{Math.min(indexOfLast, totalItems)} dari {totalItems} pasien
+          </span>
+          <div className="flex items-center gap-1">
             <button
-              key={i}
-              onClick={() => setCurrentPage(i + 1)}
-              className={`w-7 h-7 rounded-md text-xs font-black transition-all ${
-                currentPage === i + 1
-                  ? 'bg-[#007A64] text-white shadow-sm'
-                  : 'border border-slate-200 bg-white hover:bg-slate-50 text-slate-500'
-              }`}
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="p-1.5 border border-slate-200 rounded-md bg-white hover:bg-slate-50 disabled:bg-slate-50 disabled:text-slate-300 disabled:cursor-not-allowed text-slate-500 transition-all"
             >
-              {i + 1}
+              <ChevronLeft className="w-3.5 h-3.5" />
             </button>
-          ))}
-          <button
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className="p-1.5 border border-slate-200 rounded-md bg-white hover:bg-slate-50 disabled:bg-slate-50 disabled:text-slate-300 disabled:cursor-not-allowed text-slate-500 transition-all"
-          >
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
+            {[...Array(totalPages)].map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentPage(i + 1)}
+                className={`w-7 h-7 rounded-md text-xs font-black transition-all ${
+                  currentPage === i + 1
+                    ? 'bg-[#007A64] text-white shadow-sm'
+                    : 'border border-slate-200 bg-white hover:bg-slate-50 text-slate-500'
+                }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="p-1.5 border border-slate-200 rounded-md bg-white hover:bg-slate-50 disabled:bg-slate-50 disabled:text-slate-300 disabled:cursor-not-allowed text-slate-500 transition-all"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

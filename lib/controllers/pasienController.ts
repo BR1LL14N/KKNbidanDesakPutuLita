@@ -97,3 +97,56 @@ export async function deletePasien(id: string | number) {
     throw error;
   }
 }
+
+export async function getPasienStats() {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // 1. Total Pasien (Semua pasien di DB)
+    const totalPasien = await prisma.pasien.count();
+
+    // 2. Pasien Hari Ini: Pasien yang terdaftar hari ini ATAU melakukan transaksi hari ini
+    const daftarHariIni = await prisma.pasien.findMany({
+      where: {
+        createdAt: {
+          gte: today,
+          lt: tomorrow,
+        },
+      },
+      select: { id: true },
+    });
+    const daftarHariIniIds = daftarHariIni.map((p) => p.id);
+
+    const transaksiHariIni = await prisma.transaksi.findMany({
+      where: {
+        tanggal: {
+          gte: today,
+          lt: tomorrow,
+        },
+      },
+      select: { pasienId: true },
+    });
+    const transaksiHariIniIds = transaksiHariIni.map((t) => t.pasienId);
+
+    // Gabungkan ID unik untuk pasien hari ini
+    const pasienHariIniSet = new Set([...daftarHariIniIds, ...transaksiHariIniIds]);
+    const pasienHariIni = pasienHariIniSet.size;
+
+    // 3. Menunggu Rekam Medis: Pasien yang terdaftar hari ini namun BELUM melakukan transaksi keuangan (POS) hari ini
+    const waitingIds = daftarHariIniIds.filter((id) => !transaksiHariIniIds.includes(id));
+    const menungguRekamMedis = waitingIds.length;
+
+    return {
+      totalPasien,
+      pasienHariIni,
+      menungguRekamMedis,
+    };
+  } catch (error: any) {
+    console.error('Error in getPasienStats:', error);
+    throw new Error('Gagal mengambil statistik rekam medis pasien.');
+  }
+}
+

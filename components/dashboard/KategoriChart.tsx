@@ -30,7 +30,7 @@ function getBarColor(kategori: string): string {
 
 export default function KategoriChart({ breakdownKategori }: KategoriChartProps) {
   const totalOmzet = breakdownKategori.reduce((acc, curr) => acc + curr.nominalJual, 0);
-  const maxVal = Math.max(...breakdownKategori.map((k) => k.nominalJual));
+  const maxVal = breakdownKategori.length > 0 ? Math.max(...breakdownKategori.map((k) => k.nominalJual)) : 0;
 
   return (
     <div className="lg:col-span-8 bg-white p-6 shadow-sm border border-slate-150 rounded-md relative flex flex-col justify-between min-h-[400px]">

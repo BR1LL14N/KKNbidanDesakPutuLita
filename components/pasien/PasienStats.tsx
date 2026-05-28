@@ -5,13 +5,15 @@ import BracketFrame from '@/components/ui/BracketFrame';
 
 interface PasienStatsProps {
   totalPasien: number;
+  pasienHariIni: number;
+  menungguRekamMedis: number;
 }
 
-export default function PasienStats({ totalPasien }: PasienStatsProps) {
+export default function PasienStats({ totalPasien, pasienHariIni, menungguRekamMedis }: PasienStatsProps) {
   const stats = [
     {
       label: 'Total Pasien',
-      value: totalPasien > 0 ? totalPasien.toLocaleString('id-ID') : '1.284',
+      value: totalPasien.toLocaleString('id-ID'),
       sub: '↗ +12% bulan ini',
       subColor: 'text-[#007A64]',
       iconBg: 'bg-[#E6F3F0] text-[#007A64]',
@@ -19,7 +21,7 @@ export default function PasienStats({ totalPasien }: PasienStatsProps) {
     },
     {
       label: 'Pasien Hari Ini',
-      value: '24',
+      value: pasienHariIni.toLocaleString('id-ID'),
       sub: 'Semua jadwal terpenuhi',
       subColor: 'text-slate-400',
       iconBg: 'bg-[#FEF6EE] text-[#D97706]',
@@ -27,7 +29,7 @@ export default function PasienStats({ totalPasien }: PasienStatsProps) {
     },
     {
       label: 'Menunggu Rekam Medis',
-      value: '5',
+      value: menungguRekamMedis.toLocaleString('id-ID'),
       sub: 'Segera tindak lanjut',
       subColor: 'text-rose-600 font-extrabold uppercase tracking-wider',
       iconBg: 'bg-[#EEF2F6] text-[#4F46E5]',

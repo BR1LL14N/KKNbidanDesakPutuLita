@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   // 1. Ambil respons default
   const response = NextResponse.next();
 
@@ -58,7 +58,7 @@ export function middleware(request: NextRequest) {
   return response;
 }
 
-// Konfigurasi pencocokan rute agar middleware tidak memblokir aset statis internal
+// Konfigurasi pencocokan rute agar proxy tidak memblokir aset statis internal
 export const config = {
   matcher: [
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',

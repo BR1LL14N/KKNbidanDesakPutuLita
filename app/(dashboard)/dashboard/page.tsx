@@ -106,16 +106,17 @@ export default function Dashboard() {
 
         setData({
           ringkasan: {
-            totalTransaksi: rekapResult.ringkasan.totalTransaksi || MOCK_DATA.ringkasan.totalTransaksi,
-            totalPendapatan: rekapResult.ringkasan.totalPendapatan || MOCK_DATA.ringkasan.totalPendapatan,
-            totalModal: rekapResult.ringkasan.totalModal || MOCK_DATA.ringkasan.totalModal,
-            totalLabaKotor: rekapResult.ringkasan.totalLabaKotor || MOCK_DATA.ringkasan.totalLabaKotor,
-            marginKeuntungan: rekapResult.ringkasan.marginKeuntungan || MOCK_DATA.ringkasan.marginKeuntungan,
+            totalTransaksi: rekapResult.ringkasan.totalTransaksi ?? 0,
+            totalPendapatan: rekapResult.ringkasan.totalPendapatan ?? 0,
+            totalModal: rekapResult.ringkasan.totalModal ?? 0,
+            totalLabaKotor: rekapResult.ringkasan.totalLabaKotor ?? 0,
+            marginKeuntungan: rekapResult.ringkasan.marginKeuntungan ?? 0,
           },
-          breakdownMetode: rekapResult.breakdownMetode?.length > 0 ? rekapResult.breakdownMetode : MOCK_DATA.breakdownMetode,
-          breakdownKategori: rekapResult.breakdownKategori?.length > 0 ? rekapResult.breakdownKategori : MOCK_DATA.breakdownKategori,
-          recentTransactions: mappedRecent.length > 0 ? mappedRecent : MOCK_DATA.recentTransactions,
+          breakdownMetode: rekapResult.breakdownMetode ?? [],
+          breakdownKategori: rekapResult.breakdownKategori ?? [],
+          recentTransactions: mappedRecent,
         });
+        setIsMock(false);
         setLoading(false);
       })
       .catch(() => {

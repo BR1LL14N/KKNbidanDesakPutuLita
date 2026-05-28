@@ -61,11 +61,11 @@ export default function LaporanStats({ rekap }: LaporanStatsProps) {
     },
     {
       label: 'Metode Terpopuler',
-      value: topMetode ? `${topMetode.metode} (${topPct}%)` : 'QRIS GPN (65%)',
-      sub: 'Terbaca dari dominansi POS',
-      badge: 'QRIS Dominan',
-      badgeColor: 'bg-slate-100 text-slate-500',
-      iconBg: 'bg-indigo-50 text-indigo-600',
+      value: topMetode ? `${topMetode.metode} (${topPct}%)` : 'Belum Ada (0%)',
+      sub: topMetode ? 'Terbaca dari dominansi POS' : 'Belum ada transaksi',
+      badge: topMetode ? 'QRIS Dominan' : 'Kosong',
+      badgeColor: topMetode ? 'bg-slate-100 text-slate-500' : 'bg-slate-100 text-slate-400',
+      iconBg: topMetode ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-400',
       Icon: CreditCard,
     },
   ];

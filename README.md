@@ -96,6 +96,7 @@ Folder proyek telah diatur menggunakan struktur standar Next.js App Router (Type
 - **`prisma/`**: Berkas konfigurasi skema Prisma (`schema.prisma`), berkas `seed.js` untuk data awal, dan folder pelacak migrasi SQL.
 - **`public/`**: Tempat menyimpan aset statis seperti gambar, ikon, atau logo.
 - **`.env`**: Konfigurasi variabel lingkungan untuk menyimpan kredensial database (ter-ignore dari git).
+- **`proxy.ts`**: Berkas Proxy Next.js 16 untuk menyematkan header keamanan HTTP (CSP, CORS, X-Frame-Options, dsb.) dan memproteksi rute API.
 
 ---
 

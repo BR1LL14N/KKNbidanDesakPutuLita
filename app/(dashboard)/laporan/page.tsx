@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, CreditCard, Calendar, Filter, Download } from 'lucide-react';
+import { TrendingUp, CreditCard, Calendar, Filter, FileSpreadsheet, Printer } from 'lucide-react';
+import { exportLaporanToExcel } from '@/lib/exportExcel';
 import MockBanner from '@/components/ui/MockBanner';
 import BracketFrame from '@/components/ui/BracketFrame';
 import LaporanStats from '@/components/laporan/LaporanStats';
 import AuditTrailTable from '@/components/laporan/AuditTrailTable';
 import MetodePembayaranTable from '@/components/laporan/MetodePembayaranTable';
+import LaporanCharts from '@/components/laporan/LaporanCharts';
 
 const MOCK_METODE = [
   { id: 1, nama: 'Tunai', aktif: true, createdAt: '2023-10-01T00:00:00.000Z' },
@@ -52,6 +54,7 @@ export default function LaporanPage() {
   const [metodeList, setMetodeList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isMock, setIsMock] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -104,6 +107,33 @@ export default function LaporanPage() {
       setTransaksiList(filteredTx.length > 0 ? filteredTx : MOCK_TRANSAKSI);
       setMetodeList(MOCK_METODE);
       setLoading(false);
+    }
+  };
+
+  const handleExportExcel = async () => {
+    if (!rekap) {
+      alert('Data belum tersedia. Terapkan filter terlebih dahulu.');
+      return;
+    }
+    setIsExporting(true);
+    try {
+      // Ambil data lengkap dengan breakdownKategori sebelum ekspor
+      let rekapFull = rekap;
+      if (!isMock) {
+        const res = await fetch(`/api/transaksi?rekap=true&startDate=${startDate}&endDate=${endDate}`);
+        if (res.ok) rekapFull = await res.json();
+      }
+      exportLaporanToExcel({
+        rekap: rekapFull,
+        transaksiList,
+        startDate,
+        endDate,
+        isMock,
+      });
+    } catch (e) {
+      alert('Gagal mengekspor. Silakan coba lagi.');
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -169,13 +199,35 @@ export default function LaporanPage() {
                     className="px-3.5 py-2 border border-slate-200 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#007A64] text-slate-700 font-bold w-full sm:w-auto" />
                 </div>
               </div>
-              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                <button type="button" onClick={() => window.print()}
-                  className="px-4 py-2 border border-slate-250 bg-white hover:bg-slate-50 rounded-md font-bold text-slate-700 transition-all flex items-center gap-1.5 relative shrink-0 shadow-sm">
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
+                {/* Ekspor Excel */}
+                <button
+                  type="button"
+                  onClick={handleExportExcel}
+                  disabled={isExporting || loading || !rekap}
+                  className="px-4 py-2 border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-md font-bold transition-all flex items-center gap-1.5 relative shrink-0 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   <BracketFrame />
-                  <Download className="w-3.5 h-3.5" />
-                  Ekspor PDF
+                  {isExporting ? (
+                    <div className="animate-spin rounded-full h-3.5 w-3.5 border-t-2 border-emerald-600" />
+                  ) : (
+                    <FileSpreadsheet className="w-3.5 h-3.5" />
+                  )}
+                  {isExporting ? 'Menyiapkan...' : 'Ekspor Excel'}
                 </button>
+
+                {/* Cetak PDF */}
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 rounded-md font-bold text-slate-700 transition-all flex items-center gap-1.5 relative shrink-0 shadow-sm"
+                >
+                  <BracketFrame />
+                  <Printer className="w-3.5 h-3.5" />
+                  Cetak PDF
+                </button>
+
+                {/* Terapkan Filter */}
                 <button type="button" onClick={fetchData}
                   className="px-4 py-2 bg-[#007A64] hover:bg-[#006653] text-white rounded-md font-black uppercase tracking-wider transition-all flex items-center gap-1.5 relative shrink-0 shadow-sm">
                   <BracketFrame />
@@ -186,7 +238,30 @@ export default function LaporanPage() {
             </div>
           </div>
 
+          {/* Excel export info note */}
+          {rekap && !loading && (
+            <div className="bg-emerald-50/60 border border-emerald-200/60 rounded-md px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5 sm:mt-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-black text-emerald-700 uppercase tracking-wider">File Excel yang dihasilkan berisi 4 sheet terpisah:</p>
+                <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1">
+                  {[
+                    { icon: '📊', label: 'Ringkasan Eksekutif', desc: 'Indikator utama, rekap metode & kategori' },
+                    { icon: '🧾', label: 'Riwayat Transaksi', desc: `${transaksiList.length} baris invoice` },
+                    { icon: '🔍', label: 'Detail Item Tindakan', desc: 'Per baris item/tindakan dengan HPP & laba' },
+                    { icon: '💳', label: 'Rekap Metode Bayar', desc: 'Persentase & nominal per metode' },
+                  ].map(({ icon, label, desc }) => (
+                    <span key={label} className="text-[10px] text-emerald-600 font-bold">
+                      {icon} <strong>{label}</strong> — <span className="font-medium text-emerald-500">{desc}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Financial summary cards — isolated component */}
+
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {[...Array(4)].map((_, i) => (
@@ -196,6 +271,9 @@ export default function LaporanPage() {
           ) : rekap ? (
             <LaporanStats rekap={rekap} />
           ) : null}
+
+          {/* Analytics charts — self-contained, fetches its own analytics data */}
+          <LaporanCharts />
 
           {/* Audit trail table — manages expand/collapse state internally */}
           <AuditTrailTable transaksiList={transaksiList} loading={loading} />

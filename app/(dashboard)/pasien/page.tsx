@@ -26,6 +26,11 @@ export default function PasienPage() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [isMock, setIsMock] = useState(false);
+  const [stats, setStats] = useState({
+    totalPasien: 0,
+    pasienHariIni: 0,
+    menungguRekamMedis: 0,
+  });
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -34,13 +39,16 @@ export default function PasienPage() {
 
   const fetchPasien = useCallback(() => {
     setLoading(true);
-    fetch(`/api/pasien?search=${encodeURIComponent(search)}`)
-      .then((res) => {
-        if (!res.ok) throw new Error('DB Error');
-        return res.json();
-      })
-      .then((result) => {
-        setPasienList(result);
+    Promise.all([
+      fetch(`/api/pasien?search=${encodeURIComponent(search)}`),
+      fetch(`/api/pasien/stats`)
+    ])
+      .then(async ([resList, resStats]) => {
+        if (!resList.ok || !resStats.ok) throw new Error('DB Error');
+        const listData = await resList.json();
+        const statsData = await resStats.json();
+        setPasienList(listData);
+        setStats(statsData);
         setIsMock(false);
         setLoading(false);
       })
@@ -50,6 +58,11 @@ export default function PasienPage() {
           p.nama.toLowerCase().includes(search.toLowerCase())
         );
         setPasienList(filtered);
+        setStats({
+          totalPasien: 1284,
+          pasienHariIni: 24,
+          menungguRekamMedis: 5,
+        });
         setLoading(false);
       });
   }, [search]);
@@ -135,8 +148,12 @@ export default function PasienPage() {
         <MockBanner message="Basis data MySQL belum terhubung. Manajemen pasien disimulasikan menggunakan data mock visual." />
       )}
 
-      {/* Stats cards — only re-renders when pasienList.length changes */}
-      <PasienStats totalPasien={pasienList.length} />
+      {/* Stats cards */}
+      <PasienStats 
+        totalPasien={stats.totalPasien} 
+        pasienHariIni={stats.pasienHariIni} 
+        menungguRekamMedis={stats.menungguRekamMedis} 
+      />
 
       {/* Data Table — fully isolated, manages its own pagination */}
       <PasienTable
