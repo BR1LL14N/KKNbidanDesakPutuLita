@@ -105,6 +105,8 @@ export async function getPasienStats() {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
     // 1. Total Pasien (Semua pasien di DB)
     const totalPasien = await prisma.pasien.count();
 
@@ -135,18 +137,23 @@ export async function getPasienStats() {
     const pasienHariIniSet = new Set([...daftarHariIniIds, ...transaksiHariIniIds]);
     const pasienHariIni = pasienHariIniSet.size;
 
-    // 3. Menunggu Rekam Medis: Pasien yang terdaftar hari ini namun BELUM melakukan transaksi keuangan (POS) hari ini
-    const waitingIds = daftarHariIniIds.filter((id) => !transaksiHariIniIds.includes(id));
-    const menungguRekamMedis = waitingIds.length;
+    // 3. Pasien Baru Bulan Ini: Pasien yang terdaftar sejak awal bulan ini
+    const pasienBaruBulanIni = await prisma.pasien.count({
+      where: {
+        createdAt: {
+          gte: startOfMonth,
+        },
+      },
+    });
 
     return {
       totalPasien,
       pasienHariIni,
-      menungguRekamMedis,
+      pasienBaruBulanIni,
     };
   } catch (error: any) {
     console.error('Error in getPasienStats:', error);
-    throw new Error('Gagal mengambil statistik rekam medis pasien.');
+    throw new Error('Gagal mengambil statistik data pasien.');
   }
 }
 

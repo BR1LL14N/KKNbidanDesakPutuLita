@@ -1,15 +1,15 @@
 'use client';
 
-import { Users, Calendar, FileText } from 'lucide-react';
+import { Users, Calendar, UserPlus } from 'lucide-react';
 import BracketFrame from '@/components/ui/BracketFrame';
 
 interface PasienStatsProps {
   totalPasien: number;
   pasienHariIni: number;
-  menungguRekamMedis: number;
+  pasienBaruBulanIni: number;
 }
 
-export default function PasienStats({ totalPasien, pasienHariIni, menungguRekamMedis }: PasienStatsProps) {
+export default function PasienStats({ totalPasien, pasienHariIni, pasienBaruBulanIni }: PasienStatsProps) {
   const stats = [
     {
       label: 'Total Pasien',
@@ -28,12 +28,12 @@ export default function PasienStats({ totalPasien, pasienHariIni, menungguRekamM
       Icon: Calendar,
     },
     {
-      label: 'Menunggu Rekam Medis',
-      value: menungguRekamMedis.toLocaleString('id-ID'),
-      sub: 'Segera tindak lanjut',
-      subColor: 'text-rose-600 font-extrabold uppercase tracking-wider',
-      iconBg: 'bg-[#EEF2F6] text-[#4F46E5]',
-      Icon: FileText,
+      label: 'Pasien Baru Bulan Ini',
+      value: pasienBaruBulanIni.toLocaleString('id-ID'),
+      sub: 'Pertumbuhan bulanan',
+      subColor: 'text-[#007A64]',
+      iconBg: 'bg-[#E6F3F0] text-[#007A64]',
+      Icon: UserPlus,
     },
   ];
 

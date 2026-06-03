@@ -29,7 +29,7 @@ export default function PasienPage() {
   const [stats, setStats] = useState({
     totalPasien: 0,
     pasienHariIni: 0,
-    menungguRekamMedis: 0,
+    pasienBaruBulanIni: 0,
   });
 
   // Modal state
@@ -61,7 +61,7 @@ export default function PasienPage() {
         setStats({
           totalPasien: 1284,
           pasienHariIni: 24,
-          menungguRekamMedis: 5,
+          pasienBaruBulanIni: 48,
         });
         setLoading(false);
       });
@@ -152,7 +152,7 @@ export default function PasienPage() {
       <PasienStats 
         totalPasien={stats.totalPasien} 
         pasienHariIni={stats.pasienHariIni} 
-        menungguRekamMedis={stats.menungguRekamMedis} 
+        pasienBaruBulanIni={stats.pasienBaruBulanIni} 
       />
 
       {/* Data Table — fully isolated, manages its own pagination */}

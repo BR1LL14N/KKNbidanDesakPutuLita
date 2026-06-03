@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { RefreshCw } from 'lucide-react';
+
 import MockBanner from '@/components/ui/MockBanner';
 import TerapiKatalog from '@/components/kasir/TerapiKatalog';
 import CheckoutPanel from '@/components/kasir/CheckoutPanel';
@@ -183,18 +183,9 @@ export default function KasirPage() {
       )}
 
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <p className="text-xs text-slate-400 font-semibold">Point of Sale (POS)</p>
-          <h2 className="text-lg font-black text-slate-800 tracking-tight mt-0.5">Kasir Point of Sale</h2>
-        </div>
-        <button
-          onClick={fetchData}
-          className="p-2 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-700 transition-colors"
-          title="Refresh Data"
-        >
-          <RefreshCw className="w-4 h-4" />
-        </button>
+      <div>
+        <p className="text-xs text-slate-400 font-semibold">Point of Sale (POS)</p>
+        <h2 className="text-lg font-black text-slate-800 tracking-tight mt-0.5">Kasir Point of Sale</h2>
       </div>
 
       {/* Two-column POS layout */}

@@ -302,8 +302,7 @@ function MetodeChart({ data, metodeBulanan, allMetode }: { data: MetodePopuler[]
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'right' as const,
-        labels: { font: { size: 11, weight: 'bold' as const }, boxWidth: 12, padding: 14 },
+        display: false,
       },
       tooltip: {
         backgroundColor: '#1E293B',
@@ -337,8 +336,8 @@ function MetodeChart({ data, metodeBulanan, allMetode }: { data: MetodePopuler[]
       </div>
 
       {subView === 'donut' ? (
-        <div className="flex items-center gap-6">
-          <div className="relative h-[260px] flex-1">
+        <div className="flex items-center justify-center gap-12 py-4">
+          <div className="relative h-[220px] w-[220px] shrink-0">
             <Doughnut data={donutData} options={donutOptions} />
             {/* Center label */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
@@ -347,7 +346,7 @@ function MetodeChart({ data, metodeBulanan, allMetode }: { data: MetodePopuler[]
             </div>
           </div>
           {/* Stats list */}
-          <div className="space-y-2 min-w-[160px]">
+          <div className="space-y-3 min-w-[180px]">
             {data.map((d, idx) => (
               <div key={d.metode} className="flex items-center gap-2.5">
                 <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: METODE_COLORS[idx % METODE_COLORS.length].solid }} />

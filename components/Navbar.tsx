@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { usePathname } from 'next/navigation';
-import { Menu, Bell, ChevronRight, Search, X } from 'lucide-react';
+import { Menu, ChevronRight } from 'lucide-react';
 import { useSidebar } from '@/components/context/SidebarContext';
 
 const PAGE_MAP: Record<string, { title: string; breadcrumb: string[] }> = {
@@ -24,9 +24,6 @@ export default function Navbar() {
   const pathname = usePathname();
   const { isOpen, toggle } = useSidebar();
   const meta = getPageMeta(pathname);
-
-  const [showSearch, setShowSearch] = useState(false);
-  const [notifCount] = useState(3);
 
   return (
     <header
@@ -76,50 +73,12 @@ export default function Navbar() {
 
       {/* ── Right side ── */}
       <div className="flex items-center gap-2 shrink-0">
-
-        {/* ── Search bar (expandable) ── */}
-        <div className={`flex items-center transition-all duration-300 overflow-hidden ${showSearch ? 'w-56' : 'w-8'}`}>
-          {showSearch ? (
-            <div className="flex items-center w-full border border-slate-200 bg-slate-50 rounded-lg px-3 py-1.5 gap-2">
-              <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-              <input
-                autoFocus
-                type="text"
-                placeholder="Cari..."
-                className="flex-1 text-xs bg-transparent outline-none text-slate-700 font-medium placeholder:text-slate-400"
-              />
-              <button onClick={() => setShowSearch(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowSearch(true)}
-              className="p-2 rounded-lg text-slate-500 hover:text-[#007A64] hover:bg-[#E6F3F0]/60 transition-all duration-150"
-              aria-label="Buka pencarian"
-            >
-              <Search className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-
-        {/* ── Notification badge ── */}
-        <button className="relative p-2 rounded-lg text-slate-500 hover:text-[#007A64] hover:bg-[#E6F3F0]/60 transition-all">
-          <Bell className="w-4 h-4" />
-          {notifCount > 0 && (
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 border border-white" />
-          )}
-        </button>
-
-        {/* ── Divider ── */}
-        <div className="h-6 w-px bg-slate-200 mx-1" />
-
         {/* ── Profile info ── */}
         <button className="flex items-center gap-3 group rounded-xl px-2 py-1.5 hover:bg-slate-50 transition-all duration-150">
           {/* Text — hidden on very small screens */}
           <div className="text-right hidden sm:block">
             <p className="text-xs font-black text-slate-800 group-hover:text-[#007A64] transition-colors leading-none">
-              Bdn. Siti Aminah
+              Lita Anggraini S.Kep., Bd., M.H.
             </p>
             <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
               Admin Utama
@@ -128,7 +87,7 @@ export default function Navbar() {
 
           {/* Avatar */}
           <div className="w-8 h-8 rounded-full bg-[#E6F3F0] border border-[#007A64]/10 text-[#007A64] font-black flex items-center justify-center text-xs shadow-inner group-hover:border-[#007A64]/30 group-hover:bg-[#D0EAE5] transition-all">
-            SA
+            LA
           </div>
         </button>
       </div>
