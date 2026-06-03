@@ -8,8 +8,15 @@ import CheckoutPanel from '@/components/kasir/CheckoutPanel';
 import InvoiceModal from '@/components/kasir/InvoiceModal';
 
 interface CartItem {
-  terapi: { id: number; nama: string; harga: number; hargaPokok: number };
+  terapi: {
+    id: number;
+    nama: string;
+    harga: number;
+    hargaPokok: number;
+    isManual?: boolean;
+  };
   jumlah: number;
+  hargaOverride?: number | null;
 }
 
 const MOCK_KATEGORI = [
@@ -104,6 +111,30 @@ export default function KasirPage() {
     setCart((prev) => prev.filter((item) => item.terapi.id !== terapiId));
   };
 
+  const updateCartPrice = (terapiId: number, newPrice: number) => {
+    setCart((prev) =>
+      prev.map((item) =>
+        item.terapi.id === terapiId ? { ...item, hargaOverride: newPrice } : item
+      )
+    );
+  };
+
+  const addManualItem = (nama: string, harga: number) => {
+    const manualId = -Math.floor(Math.random() * 1000000) - 1; // unique negative id
+    const item: CartItem = {
+      terapi: {
+        id: manualId,
+        nama,
+        harga,
+        hargaPokok: 0,
+        isManual: true,
+      },
+      jumlah: 1,
+      hargaOverride: harga,
+    };
+    setCart((prev) => [...prev, item]);
+  };
+
   const handleCheckout = async (payload: {
     pasienMode: 'existing' | 'new';
     selectedPasienId: string;
@@ -143,21 +174,39 @@ export default function KasirPage() {
         pasienId: parseInt(targetPasienId),
         metodePembayaranId: parseInt(payload.selectedMetodeId),
         catatan: payload.catatan || null,
-        items: cart.map((item) => ({ terapiId: item.terapi.id, jumlah: item.jumlah })),
+        items: cart.map((item) => ({
+          terapiId: item.terapi.isManual ? null : item.terapi.id,
+          namaManual: item.terapi.isManual ? item.terapi.nama : null,
+          hargaOverride: item.hargaOverride !== undefined && item.hargaOverride !== null ? item.hargaOverride : null,
+          jumlah: item.jumlah,
+        })),
       };
 
       if (isMock) {
         const invoiceNum = `INV/${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}/${String(Math.floor(Math.random() * 1000) + 1).padStart(4, '0')}`;
         const patientObj = pasienList.find((p) => p.id === parseInt(targetPasienId)) || { nama: payload.newPasien.nama };
         const paymentObj = metodeList.find((m) => m.id === parseInt(payload.selectedMetodeId)) || { nama: 'Tunai' };
+        const totalHarga = cart.reduce((sum, item) => {
+          const pr = item.hargaOverride !== undefined && item.hargaOverride !== null ? item.hargaOverride : item.terapi.harga;
+          return sum + pr * item.jumlah;
+        }, 0);
+
         setSuccessInvoice({
           nomorInvoice: invoiceNum,
           tanggal: new Date().toISOString(),
           pasien: patientObj,
           metodePembayaran: paymentObj,
-          totalHarga: cart.reduce((sum, item) => sum + item.terapi.harga * item.jumlah, 0),
+          totalHarga,
           catatan: payload.catatan,
-          detailTransaksi: cart.map((item) => ({ terapi: item.terapi, hargaJual: item.terapi.harga, jumlah: item.jumlah })),
+          detailTransaksi: cart.map((item) => {
+            const pr = item.hargaOverride !== undefined && item.hargaOverride !== null ? item.hargaOverride : item.terapi.harga;
+            return {
+              terapi: item.terapi.isManual ? null : item.terapi,
+              namaManual: item.terapi.isManual ? item.terapi.nama : null,
+              hargaJual: pr,
+              jumlah: item.jumlah,
+            };
+          }),
         });
       } else {
         const res = await fetch('/api/transaksi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(transactionPayload) });
@@ -207,6 +256,8 @@ export default function KasirPage() {
           errorMessage={errorMessage}
           onUpdateQty={updateCartQty}
           onRemove={removeFromCart}
+          onUpdatePrice={updateCartPrice}
+          onAddManualItem={addManualItem}
           onCheckout={handleCheckout}
         />
       </div>

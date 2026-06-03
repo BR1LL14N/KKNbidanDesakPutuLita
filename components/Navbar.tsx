@@ -9,6 +9,7 @@ const PAGE_MAP: Record<string, { title: string; breadcrumb: string[] }> = {
   '/dashboard': { title: 'Dashboard', breadcrumb: ['Dashboard'] },
   '/kasir': { title: 'Kasir POS', breadcrumb: ['Transaksi', 'Kasir POS'] },
   '/pasien': { title: 'Data Pasien', breadcrumb: ['Rekam Medis', 'Data Pasien'] },
+  '/riwayat': { title: 'Riwayat Kunjungan', breadcrumb: ['Rekam Medis', 'Riwayat Kunjungan'] },
   '/terapi': { title: 'Katalog Terapi', breadcrumb: ['Manajemen', 'Katalog Terapi'] },
   '/laporan': { title: 'Laporan Keuangan', breadcrumb: ['Keuangan', 'Laporan'] },
 };
@@ -78,7 +79,7 @@ export default function Navbar() {
           {/* Text — hidden on very small screens */}
           <div className="text-right hidden sm:block">
             <p className="text-xs font-black text-slate-800 group-hover:text-[#007A64] transition-colors leading-none">
-              Lita Anggraini S.Kep., Bd., M.H.
+              Bidan Lita
             </p>
             <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
               Admin Utama
@@ -87,7 +88,7 @@ export default function Navbar() {
 
           {/* Avatar */}
           <div className="w-8 h-8 rounded-full bg-[#E6F3F0] border border-[#007A64]/10 text-[#007A64] font-black flex items-center justify-center text-xs shadow-inner group-hover:border-[#007A64]/30 group-hover:bg-[#D0EAE5] transition-all">
-            LA
+            BL
           </div>
         </button>
       </div>

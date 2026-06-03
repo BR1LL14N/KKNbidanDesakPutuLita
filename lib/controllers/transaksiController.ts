@@ -7,7 +7,9 @@ export interface TransaksiFilter {
 }
 
 export interface CheckoutItemInput {
-  terapiId: string | number;
+  terapiId?: string | number | null;
+  namaManual?: string | null;
+  hargaOverride?: number | null;
   jumlah: number;
 }
 
@@ -138,27 +140,54 @@ export async function checkoutTransaksi(data: CheckoutTransaksiInput) {
     const detailItems = [];
 
     for (const item of items) {
-      const targetTerapiId = typeof item.terapiId === 'string' ? parseInt(item.terapiId) : item.terapiId;
-      const terapi = await prisma.terapi.findUnique({ 
-        where: { id: targetTerapiId },
-        include: { kategori: true }
-      });
-      
-      if (!terapi || !terapi.aktif) {
-        throw new Error(`Tindakan terapi ID ${item.terapiId} tidak valid atau sudah nonaktif.`);
-      }
-
       const jumlah = parseInt(item.jumlah as any) || 1;
-      const subtotal = terapi.harga * jumlah;
-      totalHarga += subtotal;
+      
+      if (item.terapiId) {
+        // Catalog item
+        const targetTerapiId = typeof item.terapiId === 'string' ? parseInt(item.terapiId) : item.terapiId;
+        const terapi = await prisma.terapi.findUnique({ 
+          where: { id: targetTerapiId },
+          include: { kategori: true }
+        });
+        
+        if (!terapi || !terapi.aktif) {
+          throw new Error(`Tindakan terapi ID ${item.terapiId} tidak valid atau sudah nonaktif.`);
+        }
 
-      detailItems.push({
-        terapiId: terapi.id,
-        hargaJual: terapi.harga,
-        hargaPokok: terapi.hargaPokok,
-        jumlah,
-        subtotal
-      });
+        const hargaJual = item.hargaOverride !== undefined && item.hargaOverride !== null
+          ? item.hargaOverride
+          : terapi.harga;
+
+        const subtotal = hargaJual * jumlah;
+        totalHarga += subtotal;
+
+        detailItems.push({
+          terapiId: terapi.id,
+          namaManual: null,
+          hargaJual,
+          hargaPokok: terapi.hargaPokok,
+          jumlah,
+          subtotal
+        });
+      } else {
+        // Manual item
+        const namaManual = item.namaManual || 'Tindakan Manual';
+        const hargaJual = item.hargaOverride !== undefined && item.hargaOverride !== null
+          ? item.hargaOverride
+          : 0;
+
+        const subtotal = hargaJual * jumlah;
+        totalHarga += subtotal;
+
+        detailItems.push({
+          terapiId: null,
+          namaManual,
+          hargaJual,
+          hargaPokok: 0,
+          jumlah,
+          subtotal
+        });
+      }
     }
 
     // 4. Jalankan transaksi database (Atomik)
@@ -173,6 +202,7 @@ export async function checkoutTransaksi(data: CheckoutTransaksiInput) {
           detailTransaksi: {
             create: detailItems.map(item => ({
               terapiId: item.terapiId,
+              namaManual: item.namaManual,
               hargaJual: item.hargaJual,
               hargaPokok: item.hargaPokok,
               jumlah: item.jumlah,
@@ -183,7 +213,11 @@ export async function checkoutTransaksi(data: CheckoutTransaksiInput) {
         include: {
           pasien: true,
           metodePembayaran: true,
-          detailTransaksi: true
+          detailTransaksi: {
+            include: {
+              terapi: true
+            }
+          }
         }
       });
 
@@ -250,7 +284,8 @@ export async function getRekapitulasi(startDate?: string | null, endDate?: strin
         totalModal += cost;
 
         // Hitung Rekap per Kategori Terapi
-        const namaKategori = detail.terapi.kategori.nama;
+        // Guard: item manual memiliki terapi = null, gunakan fallback kategori
+        const namaKategori = detail.terapi?.kategori?.nama ?? 'Lainnya / Manual';
         if (!rekapKategori[namaKategori]) {
           rekapKategori[namaKategori] = { nominalJual: 0, nominalModal: 0, jumlahLayanan: 0 };
         }

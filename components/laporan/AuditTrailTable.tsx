@@ -8,6 +8,7 @@ import * as XLSX from 'xlsx';
 interface DetailItem {
   id: number;
   terapi?: { nama: string };
+  namaManual?: string | null;
   hargaJual: number;
   hargaPokok: number;
   jumlah: number;
@@ -244,15 +245,13 @@ export default function AuditTrailTable({ transaksiList, loading }: AuditTrailTa
                 <th className="py-3 px-4">Status</th>
                 <th className="py-3 px-4">Metode</th>
                 <th className="py-3 px-4 text-right">Omzet (Rp)</th>
-                <th className="py-3 px-4 text-right">HPP (Rp)</th>
-                <th className="py-3 px-4 text-right">Laba (Rp)</th>
                 <th className="py-3 px-4 text-center">Detail</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
               {transaksiList.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-400 text-xs">
+                  <td colSpan={6} className="py-12 text-center text-slate-400 text-xs">
                     Tidak ada riwayat transaksi keuangan pada periode ini.
                   </td>
                 </tr>
@@ -263,7 +262,7 @@ export default function AuditTrailTable({ transaksiList, loading }: AuditTrailTa
                   const isExpanded = expandedId === tx.id;
                   const isBelumBayar = tx.catatan?.toLowerCase().includes('menunggu');
 
-                  const firstItemName = tx.detailTransaksi?.[0]?.terapi?.nama || 'Layanan Medis';
+                  const firstItemName = tx.detailTransaksi?.[0]?.terapi?.nama || tx.detailTransaksi?.[0]?.namaManual || 'Layanan Medis';
                   const subLayananText =
                     tx.layananSummary ||
                     (tx.detailTransaksi.length > 1
@@ -297,8 +296,6 @@ export default function AuditTrailTable({ transaksiList, loading }: AuditTrailTa
                         </td>
                         <td className="py-4 px-4 font-bold text-slate-500">{tx.metodePembayaran?.nama}</td>
                         <td className="py-4 px-4 text-right text-slate-800 font-black">{formatRupiah(tx.totalHarga)}</td>
-                        <td className="py-4 px-4 text-right text-slate-400 font-semibold">{formatRupiah(totalHpp)}</td>
-                        <td className="py-4 px-4 text-right font-black text-teal-600">{formatRupiah(labaKotor)}</td>
                         <td className="py-4 px-4 text-center">
                           <button
                             onClick={() => toggle(tx.id)}
@@ -313,7 +310,7 @@ export default function AuditTrailTable({ transaksiList, loading }: AuditTrailTa
                       {/* Expandable detail row */}
                       {isExpanded && (
                         <tr className="bg-slate-50/40">
-                          <td colSpan={8} className="px-6 py-4 border-l-2 border-[#007A64]">
+                          <td colSpan={6} className="px-6 py-4 border-l-2 border-[#007A64]">
                             <div className="space-y-4">
                               {/* Invoice meta */}
                               <div className="flex justify-between items-start gap-4 flex-wrap">
@@ -348,27 +345,21 @@ export default function AuditTrailTable({ transaksiList, loading }: AuditTrailTa
                                   <thead>
                                     <tr className="bg-slate-100/70 text-slate-500 text-[10px] font-black uppercase tracking-wider border-b border-slate-150">
                                       <th className="py-2.5 px-4">Nama Item / Tindakan</th>
-                                      <th className="py-2.5 px-4 text-right">HPP / Unit</th>
                                       <th className="py-2.5 px-4 text-right">Tarif Jual / Unit</th>
                                       <th className="py-2.5 px-4 text-center">Qty</th>
                                       <th className="py-2.5 px-4 text-right">Subtotal Jual</th>
-                                      <th className="py-2.5 px-4 text-right">Subtotal HPP</th>
-                                      <th className="py-2.5 px-4 text-right">Laba Baris</th>
                                     </tr>
                                   </thead>
                                   <tbody className="divide-y divide-slate-100 font-medium">
                                     {tx.detailTransaksi?.map((detail, idx) => {
-                                      const subtotalHpp = detail.hargaPokok * detail.jumlah;
-                                      const detailProfit = (detail.hargaJual - detail.hargaPokok) * detail.jumlah;
                                       return (
                                         <tr key={idx}>
-                                          <td className="py-2.5 px-4 font-bold text-slate-800">{detail.terapi?.nama}</td>
-                                          <td className="py-2.5 px-4 text-right text-slate-400">{formatRupiah(detail.hargaPokok)}</td>
+                                          <td className="py-2.5 px-4 font-bold text-slate-800">
+                                            {detail.terapi?.nama || detail.namaManual || 'Tindakan Manual'}
+                                          </td>
                                           <td className="py-2.5 px-4 text-right">{formatRupiah(detail.hargaJual)}</td>
                                           <td className="py-2.5 px-4 text-center font-bold text-slate-800">{detail.jumlah}</td>
                                           <td className="py-2.5 px-4 text-right font-bold text-slate-800">{formatRupiah(detail.subtotal)}</td>
-                                          <td className="py-2.5 px-4 text-right text-slate-400">{formatRupiah(subtotalHpp)}</td>
-                                          <td className="py-2.5 px-4 text-right font-bold text-teal-600">{formatRupiah(detailProfit)}</td>
                                         </tr>
                                       );
                                     })}
@@ -380,15 +371,7 @@ export default function AuditTrailTable({ transaksiList, loading }: AuditTrailTa
                               <div className="bg-slate-100/40 p-3 rounded-lg border border-slate-200/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs font-bold">
                                 <span className="text-slate-500 uppercase text-[9px] font-bold tracking-wider">Rekap Finansial Invoice</span>
                                 <div className="flex flex-wrap gap-4">
-                                  <span className="text-slate-500">HPP Total: <strong className="text-slate-700">{formatRupiah(totalHpp)}</strong></span>
                                   <span className="text-slate-500">Omzet: <strong className="text-slate-800">{formatRupiah(tx.totalHarga)}</strong></span>
-                                  <span className="text-teal-700">Laba Kotor: <strong>{formatRupiah(labaKotor)}</strong></span>
-                                  <span className="text-indigo-600">
-                                    Margin:{' '}
-                                    <strong>
-                                      {tx.totalHarga > 0 ? ((labaKotor / tx.totalHarga) * 100).toFixed(1) : '0.0'}%
-                                    </strong>
-                                  </span>
                                 </div>
                               </div>
                             </div>

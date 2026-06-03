@@ -11,7 +11,8 @@ interface InvoiceData {
   totalHarga: number;
   catatan?: string;
   detailTransaksi?: Array<{
-    terapi?: { nama: string };
+    terapi?: { nama: string } | null;
+    namaManual?: string | null;
     hargaJual: number;
     jumlah: number;
   }>;
@@ -74,7 +75,7 @@ export default function InvoiceModal({ invoice, onClose }: InvoiceModalProps) {
               {invoice.detailTransaksi?.map((item, idx) => (
                 <div key={idx} className="flex justify-between items-center font-medium">
                   <span className="truncate pr-4">
-                    {item.terapi?.nama} (x{item.jumlah})
+                    {item.terapi?.nama || item.namaManual || 'Tindakan Manual'} (x{item.jumlah})
                   </span>
                   <span className="font-bold shrink-0">{formatRupiah(item.hargaJual * item.jumlah)}</span>
                 </div>

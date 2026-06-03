@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   ShoppingCart,
   Users,
+  History,
   Heart,
   TrendingUp,
   ChevronLeft,
@@ -19,6 +20,7 @@ const menuItems = [
   { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
   { name: 'Kasir POS', path: '/kasir', icon: ShoppingCart },
   { name: 'Data Pasien', path: '/pasien', icon: Users },
+  { name: 'Riwayat Kunjungan', path: '/riwayat', icon: History },
   { name: 'Katalog Terapi', path: '/terapi', icon: Heart },
   { name: 'Laporan Keuangan', path: '/laporan', icon: TrendingUp },
 ];

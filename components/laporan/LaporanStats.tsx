@@ -36,42 +36,24 @@ export default function LaporanStats({ rekap }: LaporanStatsProps) {
       label: 'Total Omzet',
       value: formatRupiah(rekap.ringkasan.totalPendapatan),
       sub: `${rekap.ringkasan.totalTransaksi} invoice kasir`,
-      badge: '+12.5%',
+      badge: 'Omzet',
       badgeColor: 'bg-[#E6F3F0] text-[#007A64]',
       iconBg: 'bg-[#E6F3F0] text-[#007A64]',
       Icon: TrendingUp,
     },
     {
-      label: 'Total HPP',
-      value: formatRupiah(rekap.ringkasan.totalModal),
-      sub: 'Biaya obat & BHP',
-      badge: '+2.1%',
-      badgeColor: 'bg-[#FEF6EE] text-[#D97706]',
-      iconBg: 'bg-[#FEF6EE] text-[#D97706]',
-      Icon: Package,
-    },
-    {
-      label: 'Laba Bersih',
-      value: formatRupiah(rekap.ringkasan.totalLabaKotor),
-      sub: 'Keuntungan bersih',
-      badge: '+18.2%',
-      badgeColor: 'bg-[#EEF2F6] text-[#4F46E5]',
-      iconBg: 'bg-[#EEF2F6] text-[#4F46E5]',
-      Icon: Sparkles,
-    },
-    {
       label: 'Metode Terpopuler',
       value: topMetode ? `${topMetode.metode} (${topPct}%)` : 'Belum Ada (0%)',
       sub: topMetode ? 'Terbaca dari dominansi POS' : 'Belum ada transaksi',
-      badge: topMetode ? 'QRIS Dominan' : 'Kosong',
-      badgeColor: topMetode ? 'bg-slate-100 text-slate-500' : 'bg-slate-100 text-slate-400',
-      iconBg: topMetode ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-400',
+      badge: topMetode ? 'Metode Bayar' : 'Kosong',
+      badgeColor: topMetode ? 'bg-[#EEF2F6] text-[#4F46E5]' : 'bg-slate-100 text-slate-400',
+      iconBg: topMetode ? 'bg-[#EEF2F6] text-[#4F46E5]' : 'bg-slate-100 text-slate-400',
       Icon: CreditCard,
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {stats.map((s, idx) => (
         <div
           key={idx}
@@ -80,7 +62,7 @@ export default function LaporanStats({ rekap }: LaporanStatsProps) {
           <BracketFrame />
           <div>
             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{s.label}</span>
-            <h3 className="text-lg font-black text-slate-800 mt-1 truncate max-w-[140px]">{s.value}</h3>
+            <h3 className="text-lg font-black text-slate-800 mt-1 truncate">{s.value}</h3>
             <p className="text-[10px] text-slate-400 mt-1.5 font-bold">{s.sub}</p>
           </div>
           <div className="flex flex-col items-end gap-2 shrink-0">

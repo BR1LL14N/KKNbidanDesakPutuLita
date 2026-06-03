@@ -2,13 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import {
-  ShoppingCart, Search, Trash2, Plus, Minus, CreditCard, FileText, AlertTriangle, X
+  ShoppingCart, Search, Trash2, Plus, Minus, CreditCard, FileText, AlertTriangle, X, Pencil
 } from 'lucide-react';
 import BracketFrame from '@/components/ui/BracketFrame';
 
 interface CartItem {
-  terapi: { id: number; nama: string; harga: number };
+  terapi: {
+    id: number;
+    nama: string;
+    harga: number;
+    isManual?: boolean;
+  };
   jumlah: number;
+  hargaOverride?: number | null;
 }
 
 interface Pasien {
@@ -32,6 +38,8 @@ interface CheckoutPanelProps {
   errorMessage: string;
   onUpdateQty: (terapiId: number, delta: number) => void;
   onRemove: (terapiId: number) => void;
+  onUpdatePrice: (terapiId: number, newPrice: number) => void;
+  onAddManualItem: (nama: string, harga: number) => void;
   onCheckout: (payload: {
     pasienMode: 'existing' | 'new';
     selectedPasienId: string;
@@ -69,6 +77,8 @@ export default function CheckoutPanel({
   errorMessage,
   onUpdateQty,
   onRemove,
+  onUpdatePrice,
+  onAddManualItem,
   onCheckout,
 }: CheckoutPanelProps) {
   const [patientMode, setPatientMode] = useState<'existing' | 'new'>('existing');
@@ -82,6 +92,15 @@ export default function CheckoutPanel({
   const [newAlamat, setNewAlamat] = useState('');
   const [selectedMetodeId, setSelectedMetodeId] = useState('');
   const [catatan, setCatatan] = useState('');
+
+  // Local state for inline price override
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [tempPrice, setTempPrice] = useState('');
+
+  // Local state for manual item form
+  const [showManualForm, setShowManualForm] = useState(false);
+  const [manualNama, setManualNama] = useState('');
+  const [manualHarga, setManualHarga] = useState('');
 
   // Default metode to first available
   useEffect(() => {
@@ -114,7 +133,30 @@ export default function CheckoutPanel({
     setSearchPasienQuery('');
   };
 
-  const subtotal = cart.reduce((sum, item) => sum + item.terapi.harga * item.jumlah, 0);
+  const handleSavePrice = (id: number) => {
+    const parsed = parseInt(tempPrice);
+    if (!isNaN(parsed) && parsed >= 0) {
+      onUpdatePrice(id, parsed);
+    }
+    setEditingId(null);
+  };
+
+  const handleAddManualSubmit = () => {
+    if (!manualNama.trim()) {
+      alert('Nama tindakan manual tidak boleh kosong.');
+      return;
+    }
+    const parsedPrice = parseInt(manualHarga) || 0;
+    onAddManualItem(manualNama.trim(), parsedPrice);
+    setManualNama('');
+    setManualHarga('');
+    setShowManualForm(false);
+  };
+
+  const subtotal = cart.reduce((sum, item) => {
+    const pr = item.hargaOverride !== undefined && item.hargaOverride !== null ? item.hargaOverride : item.terapi.harga;
+    return sum + pr * item.jumlah;
+  }, 0);
   const totalItems = cart.reduce((sum, item) => sum + item.jumlah, 0);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -242,9 +284,57 @@ export default function CheckoutPanel({
             )}
           </div>
 
-          {/* 2. Cart items */}
+          {/* 2. Cart items section */}
           <div className="space-y-3">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Keranjang Layanan</label>
+            <div className="flex justify-between items-center">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Keranjang Layanan</label>
+              <button
+                type="button"
+                onClick={() => setShowManualForm(!showManualForm)}
+                className="text-[10px] text-[#007A64] hover:text-[#006653] font-black flex items-center gap-1 uppercase tracking-wider"
+              >
+                <Plus className="w-3 h-3" /> Tindakan Manual
+              </button>
+            </div>
+
+            {/* Manual Form Box */}
+            {showManualForm && (
+              <div className="bg-slate-50 border border-slate-200 rounded-md p-3 space-y-2.5 relative animate-in slide-in-from-top-2 duration-150">
+                <BracketFrame />
+                <div className="flex justify-between items-center border-b border-slate-100 pb-1">
+                  <span className="text-[9px] font-black text-[#007A64] uppercase tracking-wider">Input Tindakan Manual</span>
+                  <button type="button" onClick={() => setShowManualForm(false)} className="text-slate-400 hover:text-slate-600">
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+                <div className="space-y-1.5 text-xs">
+                  <input
+                    type="text"
+                    placeholder="Nama Layanan / Tindakan..."
+                    value={manualNama}
+                    onChange={(e) => setManualNama(e.target.value)}
+                    className="w-full px-2.5 py-1.5 border border-slate-200 bg-white rounded focus:outline-none focus:ring-1 focus:ring-[#007A64] text-slate-700 font-bold"
+                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      placeholder="Harga Jual (Rp)..."
+                      value={manualHarga}
+                      onChange={(e) => setManualHarga(e.target.value)}
+                      className="w-full px-2.5 py-1.5 border border-slate-200 bg-white rounded focus:outline-none focus:ring-1 focus:ring-[#007A64] text-slate-700 font-bold text-right"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddManualSubmit}
+                      className="px-4 py-1.5 bg-[#007A64] hover:bg-[#006653] text-white rounded font-black uppercase tracking-wider text-[10px]"
+                    >
+                      Tambah
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {cart.length === 0 ? (
               <div className="border border-slate-200 bg-slate-50/50 rounded-md py-10 text-center text-slate-400 text-xs flex flex-col items-center justify-center gap-2 relative">
                 <BracketFrame />
@@ -258,7 +348,53 @@ export default function CheckoutPanel({
                   <div key={item.terapi.id} className="p-3.5 flex justify-between items-center gap-3">
                     <div className="flex-1 min-w-0">
                       <h5 className="font-extrabold text-slate-800 text-xs truncate">{item.terapi.nama}</h5>
-                      <span className="text-[10px] text-[#007A64] font-bold mt-0.5 block">{formatRupiah(item.terapi.harga)}</span>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        {editingId === item.terapi.id ? (
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              value={tempPrice}
+                              onChange={(e) => setTempPrice(e.target.value)}
+                              onBlur={() => handleSavePrice(item.terapi.id)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSavePrice(item.terapi.id);
+                                if (e.key === 'Escape') setEditingId(null);
+                              }}
+                              className="w-24 px-1.5 py-0.5 border border-[#007A64]/30 rounded text-xs text-right font-bold focus:outline-none focus:ring-1 focus:ring-[#007A64] text-slate-800"
+                              autoFocus
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleSavePrice(item.terapi.id)}
+                              className="text-[10px] text-emerald-600 font-extrabold"
+                            >
+                              OK
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] text-[#007A64] font-bold">
+                              {formatRupiah(item.hargaOverride !== undefined && item.hargaOverride !== null ? item.hargaOverride : item.terapi.harga)}
+                            </span>
+                            {item.terapi.isManual && (
+                              <span className="bg-amber-100 text-amber-800 text-[8px] font-black px-1.5 py-0.2 rounded uppercase tracking-wider scale-90">
+                                Manual
+                              </span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingId(item.terapi.id);
+                                setTempPrice(String(item.hargaOverride !== undefined && item.hargaOverride !== null ? item.hargaOverride : item.terapi.harga));
+                              }}
+                              className="text-slate-400 hover:text-[#007A64] transition-colors p-0.5"
+                              title="Ubah harga untuk transaksi ini"
+                            >
+                              <Pencil className="w-2.5 h-2.5" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg p-0.5 shadow-inner shrink-0">
                       <button type="button" onClick={() => onUpdateQty(item.terapi.id, -1)} className="p-1 hover:bg-white rounded text-slate-500 hover:text-slate-800 transition-colors">

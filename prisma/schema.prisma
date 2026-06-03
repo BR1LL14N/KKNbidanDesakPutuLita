@@ -95,15 +95,17 @@ model Transaksi {
 // 6. DETAIL TRANSAKSI (Invoice POS Items Line - Hanya Create & Read)
 // ==========================================
 model DetailTransaksi {
-  id          Int       @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())
   transaksiId Int
-  transaksi   Transaksi @relation(fields: [transaksiId], references: [id], onDelete: Cascade)
-  terapiId    Int
-  terapi      Terapi    @relation(fields: [terapiId], references: [id], onDelete: Restrict)
-  hargaJual   Int       // Snapshot harga jual saat transaksi
-  hargaPokok  Int       // Snapshot harga modal saat transaksi
-  jumlah      Int       @default(1)
-  subtotal    Int       // hargaJual * jumlah
+  transaksi   Transaksi  @relation(fields: [transaksiId], references: [id], onDelete: Cascade)
+  terapiId    Int?                                                                              // Nullable: null = item manual/ad-hoc
+  terapi      Terapi?    @relation(fields: [terapiId], references: [id], onDelete: Restrict)   // Optional relation
+  namaManual  String?    @db.VarChar(200)                                                      // Nama item manual (diisi jika terapiId null)
+  hargaJual   Int        // Snapshot harga jual saat transaksi (bisa override dari katalog)
+  hargaPokok  Int        @default(0) // Snapshot harga modal (0 untuk item manual/ad-hoc)
+  jumlah      Int        @default(1)
+  subtotal    Int        // hargaJual * jumlah
 
   @@map("detail_transaksi")
 }
+
