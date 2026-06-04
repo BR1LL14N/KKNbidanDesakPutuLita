@@ -164,6 +164,7 @@ export default function LaporanPage() {
           <TrendingUp className="w-4 h-4" />
           Rekapitulasi Omzet & Laba
         </button>
+
         <button
           onClick={() => setActiveTab('metode')}
           className={`pb-4 font-bold transition-all relative flex items-center gap-2 ${
@@ -280,7 +281,7 @@ export default function LaporanPage() {
         </div>
       )}
 
-      {/* Tab 2: Payment Methods — self-contained CRUD */}
+      {/* Tab 2: Kelola Metode Pembayaran */}
       {activeTab === 'metode' && (
         <MetodePembayaranTable
           metodeList={metodeList}

@@ -30,6 +30,28 @@ interface Metode {
   aktif: boolean;
 }
 
+// ---------- Mock data (digunakan bila API tidak tersedia) ----------
+const mockPasienList: Pasien[] = [
+  { id: 1, nama: 'Budi Santoso', tanggalLahir: '1990-05-12', alamat: 'Jl. Merdeka 10' },
+  { id: 2, nama: 'Siti Aminah', tanggalLahir: '1985-09-30', alamat: 'Jl. Sudirman 45' },
+  // tambahkan baris lain bila ingin lebih banyak contoh
+];
+
+// Daftar lengkap metode pembayaran yang juga muncul di halaman Laporan Keuangan & Kelola Metode.
+// Tambahkan atau ubah di sini bila ada metode baru.
+const mockMetodeList: Metode[] = [
+  { id: 1, nama: 'Tunai', aktif: true },
+  { id: 2, nama: 'Kartu Kredit', aktif: true },
+  { id: 3, nama: 'Transfer Bank', aktif: true },
+  // ---- Metode tambahan (sesuai UI) ----
+  { id: 4, nama: 'QRIS', aktif: true },
+  { id: 5, nama: 'DANA', aktif: true },
+  { id: 6, nama: 'BCA', aktif: true },
+  { id: 7, nama: 'BRI', aktif: true },
+  { id: 8, nama: 'MANDIRI', aktif: true },
+];
+
+
 interface CheckoutPanelProps {
   cart: CartItem[];
   pasienList: Pasien[];
@@ -71,8 +93,8 @@ function getAge(birthdate: string): string {
 
 export default function CheckoutPanel({
   cart,
-  pasienList,
-  metodeList,
+  pasienList = mockPasienList,   // ← fallback otomatis bila undefined/null
+  metodeList = mockMetodeList,   // ← fallback otomatis bila undefined/null
   isSubmitting,
   errorMessage,
   onUpdateQty,

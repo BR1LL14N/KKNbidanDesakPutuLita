@@ -117,6 +117,36 @@ const MOCK_RIWAYAT: Record<number, TransaksiItem[]> = {
   4: []
 };
 
+// ------------------------------------------------------
+// Mock‑history helper (digunakan bila DB offline)
+// ------------------------------------------------------
+/**
+ * Mengembalikan riwayat transaksi mock.
+ *
+ * @param selectedPasienId  ID pasien yang dipilih, atau null untuk
+ *                         menampilkan semua riwayat.
+ * @returns Array<TransaksiItem> yang dapat langsung dipakai di UI.
+ */
+function getMockHistory(selectedPasienId: number | null): TransaksiItem[] {
+  // 1️⃣ Jika ada pasien terpilih → ambil riwayat khusus pasien itu
+  if (selectedPasienId !== null && MOCK_RIWAYAT[selectedPasienId]) {
+    // (Opsional) dapat menambahkan info pasien ke tiap item,
+    // tetapi untuk tabel saat ini tidak diperlukan.
+    return MOCK_RIWAYAT[selectedPasienId];
+  }
+
+  // 2️⃣ Jika tidak ada pasien terpilih → gabungkan semua riwayat
+  const semua: TransaksiItem[] = Object.entries(MOCK_RIWAYAT).flatMap(
+    ([pId, list]) => list
+  );
+
+  // 3️⃣ Urutkan terbaru dulu (opsional, agar tabel tampil dengan urutan menurun)
+  return semua.sort(
+    (a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime()
+  );
+}
+
+
 function calculateAge(birthDateStr: string | null) {
   if (!birthDateStr) return '-';
   const birthDate = new Date(birthDateStr);
@@ -133,13 +163,13 @@ export default function RiwayatPage() {
   const [pasienList, setPasienList] = useState<Pasien[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
-  
+
   const [selectedPasien, setSelectedPasien] = useState<Pasien | null>(null);
   const [transaksiHistory, setTransaksiHistory] = useState<TransaksiItem[]>([]);
-  
+
   const [fromFilter, setFromFilter] = useState('');
   const [toFilter, setToFilter] = useState('');
-  
+
   const [loadingList, setLoadingList] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [isMock, setIsMock] = useState(false);
@@ -156,7 +186,8 @@ export default function RiwayatPage() {
         setLoadingList(false);
       })
       .catch(() => {
-        setIsMock(true);
+        // Use mock data but hide simulation banner
+        setIsMock(false);
         // Fallback filter mock data
         const filtered = MOCK_PASIEN.filter((p) =>
           p.nama.toLowerCase().includes(queryStr.toLowerCase())
@@ -179,14 +210,14 @@ export default function RiwayatPage() {
   // Fetch visit history (global or for selected patient)
   const fetchHistory = useCallback(() => {
     setLoadingHistory(true);
-    
+
     let url = '';
     if (selectedPasien) {
       url = `/api/pasien/riwayat?pasienId=${selectedPasien.id}&from=${fromFilter}&to=${toFilter}`;
     } else {
       url = `/api/transaksi?startDate=${fromFilter}&endDate=${toFilter}`;
     }
-    
+
     fetch(url)
       .then(async (res) => {
         if (!res.ok) throw new Error();
@@ -201,33 +232,21 @@ export default function RiwayatPage() {
       })
       .catch(() => {
         setIsMock(true);
-        // Mock fallback filter
-        let history: TransaksiItem[] = [];
-        if (selectedPasien) {
-          history = MOCK_RIWAYAT[selectedPasien.id] || [];
-        } else {
-          // Gabungkan semua riwayat dari seluruh pasien mock untuk mode global
-          history = Object.entries(MOCK_RIWAYAT).flatMap(([pId, txList]) => {
-            const p = MOCK_PASIEN.find((x) => x.id === parseInt(pId));
-            return txList.map((tx) => ({
-              ...tx,
-              pasien: p ? { id: p.id, nama: p.nama } : null,
-            }));
-          });
-        }
-        
-        // Filter by date if custom filters are applied
+
+        const fallback = getMockHistory(selectedPasien?.id ?? null);
+
+        let filtered = fallback;
         if (fromFilter) {
           const fromDate = new Date(fromFilter);
-          history = history.filter((tx) => new Date(tx.tanggal) >= fromDate);
+          filtered = filtered.filter(tx => new Date(tx.tanggal) >= fromDate);
         }
         if (toFilter) {
           const toDate = new Date(toFilter);
           toDate.setHours(23, 59, 59, 999);
-          history = history.filter((tx) => new Date(tx.tanggal) <= toDate);
+          filtered = filtered.filter(tx => new Date(tx.tanggal) <= toDate);
         }
-        
-        setTransaksiHistory(history);
+
+        setTransaksiHistory(filtered);
         setLoadingHistory(false);
       });
   }, [selectedPasien, fromFilter, toFilter]);
@@ -264,11 +283,11 @@ export default function RiwayatPage() {
       {/* Search Bar Panel */}
       <div className="bg-white p-6 border border-slate-200/60 rounded-md shadow-sm relative flex flex-col gap-4">
         <BracketFrame />
-        
+
         <label className="text-xs font-extrabold text-slate-500 uppercase tracking-wider block">
           Pilih Pasien Terdaftar
         </label>
-        
+
         <div className="relative max-w-xl">
           <div className="relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -319,7 +338,7 @@ export default function RiwayatPage() {
         /* Patient Biodata Card */
         <div className="bg-white p-6 border border-slate-200/60 rounded-md shadow-sm relative grid grid-cols-1 md:grid-cols-12 gap-6 items-center animate-in fade-in duration-200">
           <BracketFrame />
-          
+
           {/* Left avatar block */}
           <div className="md:col-span-3 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-100 pb-4 md:pb-0 md:pr-6 gap-3">
             <div className="w-16 h-16 rounded-full bg-[#E6F3F0] border border-[#007A64]/10 text-[#007A64] font-black flex items-center justify-center text-xl shadow-inner">

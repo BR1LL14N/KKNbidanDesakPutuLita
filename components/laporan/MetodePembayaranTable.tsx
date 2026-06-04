@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Edit, Trash2, CreditCard, AlertTriangle, X, Check, Plus } from 'lucide-react';
 import BracketFrame from '@/components/ui/BracketFrame';
 

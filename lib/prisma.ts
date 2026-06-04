@@ -1,5 +1,8 @@
 import { PrismaClient } from '@prisma/client';
-import { PrismaMariaDb } from '@prisma/adapter-mariadb';
+import { prismaAdapter } from '../prisma/prisma.config';
+import * as dotenv from 'dotenv';
+dotenv.config();   // <-- ini penting
+
 
 const prismaClientSingleton = () => {
   let host = 'localhost';
@@ -24,21 +27,13 @@ const prismaClientSingleton = () => {
     console.warn('Warning: DATABASE_URL is not set. Using default local MySQL credentials.');
   }
 
-  try {
-    const adapter = new PrismaMariaDb({
-      host,
-      port,
-      user,
-      password,
-      database,
-      connectionLimit: 5,
-    });
-    return new PrismaClient({ adapter });
-  } catch (err) {
-    console.error('Critical Error: Failed to instantiate Prisma client with MariaDB adapter:', err);
-    // Return empty constructor client as emergency fallback, even if it may fail during execution
-    return new PrismaClient();
-  }
+// Create Prisma client using adapter defined in prisma.config.ts
+try {
+  return new PrismaClient({ adapter: prismaAdapter });
+} catch (err) {
+  console.error('Critical Error creating Prisma client:', err);
+  process.exit(1);
+}
 };
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined };
