@@ -164,7 +164,7 @@ interface ToastContainerProps {
 
 export function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
   return (
-    <div className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 items-end pointer-events-none">
+    <div className="fixed bottom-6 right-6 z-9999 flex flex-col gap-3 items-end pointer-events-none">
       {toasts.map((t) => (
         <div key={t.id} className="pointer-events-auto">
           <ToastCard toast={t} onDismiss={onDismiss} />
@@ -234,7 +234,7 @@ export function ConfirmDialog({ options, onConfirm, onCancel }: ConfirmDialogPro
   return (
     <div
       className={`
-        fixed inset-0 z-[9998] flex items-center justify-center p-4
+        fixed inset-0 z-9998 flex items-center justify-center p-4
         transition-all duration-300
         ${visible ? 'bg-slate-950/60 backdrop-blur-sm' : 'bg-transparent'}
       `}

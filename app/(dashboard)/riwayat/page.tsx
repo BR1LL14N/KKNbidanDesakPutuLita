@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, User, Calendar, MapPin, Sparkles, Filter, RefreshCw, XCircle } from 'lucide-react';
+import { Search, User, Calendar, MapPin, Filter, XCircle } from 'lucide-react';
 import MockBanner from '@/components/ui/MockBanner';
 import BracketFrame from '@/components/ui/BracketFrame';
 import RiwayatPasienTable from '@/components/riwayat/RiwayatPasienTable';

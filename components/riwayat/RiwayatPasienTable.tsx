@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Calendar, CreditCard, Receipt, Activity, ChevronDown, ChevronUp, User, FileSpreadsheet, Printer } from 'lucide-react';
+import { Calendar, CreditCard, Activity, ChevronDown, FileSpreadsheet, Printer } from 'lucide-react';
 import BracketFrame from '@/components/ui/BracketFrame';
 import * as XLSX from 'xlsx';
 

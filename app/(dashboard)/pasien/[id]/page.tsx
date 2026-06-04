@@ -195,7 +195,7 @@ export default function PasienDetailPage() {
         {/* Left Col: Biodata & Stats */}
         <div className="space-y-6">
           {/* Biodata Card */}
-          <div className="bg-gradient-to-br from-teal-500 to-emerald-600 rounded-2xl p-6 shadow-md text-white relative overflow-hidden">
+          <div className="bg-linear-to-br from-teal-500 to-emerald-600 rounded-2xl p-6 shadow-md text-white relative overflow-hidden">
             <div className="absolute top-0 right-0 p-6 opacity-10">
               <User className="w-32 h-32" />
             </div>
@@ -287,7 +287,7 @@ export default function PasienDetailPage() {
                 <p className="text-sm mt-1">Layanan yang diberikan ke pasien akan otomatis tampil di sini.</p>
               </div>
             ) : (
-              <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent">
+              <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-linear-to-b before:from-transparent before:via-slate-200 before:to-transparent">
                 {riwayat.map((tx: any, idx: number) => {
                   
                   // Calculate interval with previous visit (which is next in array since it's desc)

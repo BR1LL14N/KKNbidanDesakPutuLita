@@ -36,7 +36,7 @@ export default function TerapiPage() {
   const [formTerapiNama, setFormTerapiNama] = useState('');
   const [formTerapiKategoriId, setFormTerapiKategoriId] = useState('');
   const [formTerapiHarga, setFormTerapiHarga] = useState('');
-  const [formTerapiHargaPokok, setFormTerapiHargaPokok] = useState('');
+
   const [formTerapiDeskripsi, setFormTerapiDeskripsi] = useState('');
   const [formTerapiAktif, setFormTerapiAktif] = useState(true);
   const [terapiFormError, setTerapiFormError] = useState('');
@@ -217,7 +217,7 @@ export default function TerapiPage() {
       setFormTerapiNama(terapi.nama);
       setFormTerapiKategoriId(String(terapi.kategoriId));
       setFormTerapiHarga(String(terapi.harga));
-      setFormTerapiHargaPokok(String(terapi.hargaPokok));
+
       setFormTerapiDeskripsi(terapi.deskripsi || '');
       setFormTerapiAktif(terapi.aktif);
     } else {
@@ -225,7 +225,7 @@ export default function TerapiPage() {
       setFormTerapiNama('');
       setFormTerapiKategoriId(kategoriList.length > 0 ? String(kategoriList[0].id) : '');
       setFormTerapiHarga('');
-      setFormTerapiHargaPokok('');
+
       setFormTerapiDeskripsi('');
       setFormTerapiAktif(true);
     }

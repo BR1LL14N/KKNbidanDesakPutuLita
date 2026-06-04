@@ -84,9 +84,7 @@ body {
   button,
   input,
   select,
-  .mock-banner,
-  .BracketFrame,
-  .no-print * {
+  .mock-banner {
     display: none !important;
   }
 
