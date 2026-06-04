@@ -140,8 +140,23 @@ export default function MetodePembayaranTable({
 
         <div className="overflow-x-auto">
           {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#007A64]" />
+            <div className="space-y-3 animate-pulse py-2">
+              <div className="grid grid-cols-4 gap-4 py-2.5 border-b border-slate-100">
+                {[...Array(4)].map((_, idx) => (
+                  <div key={idx} className="h-3 bg-slate-200 rounded w-2/3" />
+                ))}
+              </div>
+              {[...Array(4)].map((_, rowIdx) => (
+                <div key={rowIdx} className="grid grid-cols-4 gap-4 py-3 items-center">
+                  <div className="h-3 bg-slate-200 rounded w-1/2" />
+                  <div className="h-3 bg-slate-200 rounded w-2/3" />
+                  <div className="h-6 bg-slate-200 rounded-full w-16 justify-self-center" />
+                  <div className="flex gap-2 justify-center">
+                    <div className="w-16 h-8 bg-slate-200 rounded" />
+                    <div className="w-16 h-8 bg-slate-200 rounded" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             <table className="w-full text-left border-collapse text-xs">

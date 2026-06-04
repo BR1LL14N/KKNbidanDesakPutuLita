@@ -27,14 +27,6 @@ export default function DashboardStats({ ringkasan, rataRataHarian, periodLabel 
       Icon: TrendingUp,
     },
     {
-      label: 'Laba Kotor',
-      value: formatRupiah(ringkasan.totalLabaKotor),
-      valueColor: 'text-[#007A64]',
-      sub: `Margin Keuntungan ${ringkasan.marginKeuntungan.toFixed(1)}%`,
-      iconBg: 'bg-[#FEF6EE] text-[#D97706]',
-      Icon: Coins,
-    },
-    {
       label: 'Jumlah Kunjungan',
       value: `${ringkasan.totalTransaksi} Pasien`,
       sub: 'Total kunjungan dalam periode',
@@ -43,7 +35,7 @@ export default function DashboardStats({ ringkasan, rataRataHarian, periodLabel 
     },
     {
       label: 'Rata-rata / Hari',
-      value: `${rataRataHarian.toFixed(1)} Kunjungan`,
+      value: `${Math.round(rataRataHarian)} Kunjungan`,
       valueColor: 'text-slate-800',
       sub: 'Rata-rata kunjungan harian',
       iconBg: 'bg-[#FDF2F2] text-[#E11D48]',
@@ -52,7 +44,7 @@ export default function DashboardStats({ ringkasan, rataRataHarian, periodLabel 
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {stats.map((s, idx) => (
         <div
           key={idx}

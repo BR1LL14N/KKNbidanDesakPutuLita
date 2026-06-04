@@ -39,6 +39,7 @@ export async function GET(request: Request) {
     const transaksiList = await prisma.transaksi.findMany({
       where,
       include: {
+        pasien: true,
         metodePembayaran: true,
         detailTransaksi: {
           include: {

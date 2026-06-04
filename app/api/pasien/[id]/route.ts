@@ -8,7 +8,9 @@ interface RouteContext {
 export async function GET(request: Request, { params }: RouteContext) {
   try {
     const { id } = await params;
-    const data = await getPasienById(id);
+    const { searchParams } = new URL(request.url);
+    const includeHistory = searchParams.get('includeHistory') === 'true';
+    const data = await getPasienById(id, includeHistory);
     return NextResponse.json(data);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 404 });

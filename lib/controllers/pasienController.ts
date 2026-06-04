@@ -24,10 +24,27 @@ export async function getAllPasien(search: string = '') {
   }
 }
 
-export async function getPasienById(id: string | number) {
+export async function getPasienById(id: string | number, includeHistory: boolean = false) {
   try {
+    const targetId = typeof id === 'string' ? parseInt(id) : id;
+    const includeOptions = includeHistory ? {
+      transaksi: {
+        orderBy: {
+          tanggal: 'desc',
+        },
+        include: {
+          detailTransaksi: {
+            include: {
+              terapi: true,
+            }
+          }
+        }
+      }
+    } as const : undefined;
+
     const pasien = await prisma.pasien.findUnique({
-      where: { id: typeof id === 'string' ? parseInt(id) : id },
+      where: { id: targetId },
+      include: includeOptions,
     });
     if (!pasien) {
       throw new Error('Pasien tidak ditemukan.');

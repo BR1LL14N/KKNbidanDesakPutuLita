@@ -212,56 +212,24 @@ function OmzetChart({ data }: { data: OmzetBulanan[] }) {
         pointRadius: 4,
         pointHoverRadius: 7,
       },
-      {
-        label: 'HPP',
-        data: data.map(d => d.hpp),
-        borderColor: PALETTE.amber.solid,
-        backgroundColor: PALETTE.amber.light,
-        fill: true,
-        tension: 0.4,
-        borderDash: [5, 3],
-        pointBackgroundColor: PALETTE.amber.solid,
-        pointRadius: 3,
-        pointHoverRadius: 6,
-      },
-      {
-        label: 'Laba Bersih',
-        data: data.map(d => d.laba),
-        borderColor: PALETTE.indigo.solid,
-        backgroundColor: PALETTE.indigo.light,
-        fill: false,
-        tension: 0.4,
-        pointBackgroundColor: PALETTE.indigo.solid,
-        pointRadius: 4,
-        pointHoverRadius: 7,
-      },
     ],
   };
 
   // Summary strip
   const totalOmzet = data.reduce((s, d) => s + d.omzet, 0);
-  const totalLaba = data.reduce((s, d) => s + d.laba, 0);
   const bestMonth = data.reduce((best, d) => d.omzet > best.omzet ? d : best, data[0]);
-  const margin = totalOmzet > 0 ? ((totalLaba / totalOmzet) * 100).toFixed(1) : '0.0';
 
   return (
     <div className="space-y-4">
       {/* Summary strip */}
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { label: 'Total Omzet', value: formatShort(totalOmzet), color: 'text-[#007A64]', bg: 'bg-[#E6F3F0]' },
-          { label: 'Total Laba', value: formatShort(totalLaba), color: 'text-indigo-600', bg: 'bg-indigo-50' },
-          { label: 'Margin Rata-rata', value: `${margin}%`, color: 'text-amber-600', bg: 'bg-amber-50' },
-        ].map(({ label, value, color, bg }) => (
-          <div key={label} className={`${bg} rounded-xl p-3 text-center`}>
-            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">{label}</p>
-            <p className={`text-base font-black ${color} mt-0.5`}>{value}</p>
-          </div>
-        ))}
+      <div className="bg-[#E6F3F0] rounded-xl p-4 text-center max-w-md mx-auto border border-[#007A64]/10 shadow-sm">
+        <p className="text-[10px] text-[#007A64] font-extrabold uppercase tracking-wider">Total Omzet Pendapatan</p>
+        <p className="text-2xl font-black text-[#007A64] mt-1">{formatRupiah(totalOmzet)}</p>
       </div>
+
       {/* Bulan terbaik badge */}
       {bestMonth && (
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-[#007A64]/5 border border-[#007A64]/20 rounded-lg w-fit text-xs text-[#007A64] font-bold">
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-[#007A64]/5 border border-[#007A64]/20 rounded-lg w-fit text-xs text-[#007A64] font-bold mx-auto">
           <Star className="w-3.5 h-3.5" />
           Bulan terbaik: <span className="font-black">{bestMonth.bulan}</span> — {formatRupiah(bestMonth.omzet)}
         </div>
@@ -373,7 +341,7 @@ function LayananChart({ data }: { data: LayananPopuler[] }) {
   return (
     <div className="space-y-3">
       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Top {data.length} Layanan / Tindakan Terpopuler Tahun Ini</p>
-      <div className="h-[280px] overflow-y-auto pr-1 space-y-2.5">
+      <div className="h-[280px] overflow-y-auto pr-4 space-y-2.5">
         {data.map((item, idx) => {
           const color = KATEGORI_COLOR[item.kategori] || PALETTE.sky.solid;
           const pct = (item.jumlah / maxJumlah) * 100;
@@ -413,7 +381,7 @@ function LayananChart({ data }: { data: LayananPopuler[] }) {
 type ChartTab = 'omzet' | 'metode' | 'layanan';
 
 const TABS: { key: ChartTab; label: string; Icon: React.ElementType }[] = [
-  { key: 'omzet',   label: 'Tren Omzet & Laba',         Icon: TrendingUp },
+  { key: 'omzet',   label: 'Tren Omzet',         Icon: TrendingUp },
   { key: 'metode',  label: 'Metode Pembayaran',          Icon: CreditCard },
   { key: 'layanan', label: 'Layanan Terpopuler',         Icon: Star },
 ];

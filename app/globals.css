@@ -60,3 +60,75 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+@keyframes slide-down {
+  from {
+    transform: translateY(-8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@utility animate-slide-down {
+  animation: slide-down 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media print {
+  /* Sembunyikan elemen non-printable */
+  aside,
+  nav,
+  .no-print,
+  button,
+  input,
+  select,
+  .mock-banner,
+  .BracketFrame,
+  .no-print * {
+    display: none !important;
+  }
+
+  /* Reset layout utama agar lebar penuh */
+  body,
+  main,
+  .flex-1 {
+    background: white !important;
+    color: black !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+    position: static !important;
+  }
+
+  /* Reset margin/padding main content */
+  main {
+    padding-top: 0 !important;
+  }
+
+  /* Format tabel untuk cetak */
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    margin-top: 10px !important;
+  }
+
+  th, td {
+    border: 1px solid #94a3b8 !important;
+    padding: 6px 8px !important;
+    color: black !important;
+    background: transparent !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+  }
+}

@@ -111,8 +111,27 @@ export default function PasienTable({
       {/* Table */}
       <div className="overflow-x-auto">
         {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#007A64]" />
+          <div className="space-y-3 animate-pulse py-2">
+            <div className="grid grid-cols-5 gap-4 py-2.5 border-b border-slate-100">
+              {[...Array(5)].map((_, idx) => (
+                <div key={idx} className="h-3 bg-slate-200 rounded w-2/3" />
+              ))}
+            </div>
+            {[...Array(5)].map((_, rowIdx) => (
+              <div key={rowIdx} className="grid grid-cols-5 gap-4 py-3.5 items-center">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-slate-200 shrink-0" />
+                  <div className="h-3 bg-slate-200 rounded w-20" />
+                </div>
+                <div className="h-3 bg-slate-200 rounded w-24" />
+                <div className="h-3 bg-slate-200 rounded w-44" />
+                <div className="h-3 bg-slate-200 rounded w-20" />
+                <div className="flex gap-2 justify-center">
+                  <div className="w-8 h-8 bg-slate-200 rounded" />
+                  <div className="w-8 h-8 bg-slate-200 rounded" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <table className="w-full text-left border-collapse text-xs">

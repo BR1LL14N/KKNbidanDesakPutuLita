@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Heart, 
   FolderPlus, 
   Plus, 
   Search, 
@@ -12,11 +11,10 @@ import {
   X, 
   Check, 
   Layers, 
-  Tag, 
-  DollarSign, 
   Activity,
   Info
 } from 'lucide-react';
+import { ToastContainer, ConfirmDialog, useToast, useConfirm } from '@/components/ui/Toast';
 
 export default function TerapiPage() {
   const [activeTab, setActiveTab] = useState('terapi'); // 'terapi' or 'kategori'
@@ -52,6 +50,8 @@ export default function TerapiPage() {
 
   // Global Notification
   const [successMsg, setSuccessMsg] = useState('');
+  const toast = useToast();
+  const confirmDialog = useConfirm();
 
   // Mock Data
   const mockKategori = [
@@ -102,9 +102,8 @@ export default function TerapiPage() {
 
   const triggerSuccessNotification = (msg) => {
     setSuccessMsg(msg);
-    setTimeout(() => {
-      setSuccessMsg('');
-    }, 4000);
+    setTimeout(() => setSuccessMsg(''), 4000);
+    toast.success(msg);
   };
 
   // --- CRUD TERAPI (TINDAKAN) ---
@@ -124,20 +123,12 @@ export default function TerapiPage() {
       setTerapiFormError('Harga jual tidak boleh kosong atau negatif.');
       return;
     }
-    if (formTerapiHargaPokok === '' || parseInt(formTerapiHargaPokok) < 0) {
-      setTerapiFormError('Harga pokok / HPP tidak boleh kosong atau negatif.');
-      return;
-    }
-    if (parseInt(formTerapiHargaPokok) > parseInt(formTerapiHarga)) {
-      setTerapiFormError('Harga pokok (modal) tidak boleh melebihi harga jual (tarif).');
-      return;
-    }
 
     const payload = {
       nama: formTerapiNama,
       kategoriId: parseInt(formTerapiKategoriId),
       harga: parseInt(formTerapiHarga),
-      hargaPokok: parseInt(formTerapiHargaPokok),
+      hargaPokok: 0,
       deskripsi: formTerapiDeskripsi || null,
       aktif: formTerapiAktif
     };
@@ -187,12 +178,20 @@ export default function TerapiPage() {
       });
   };
 
-  const handleTerapiDelete = (id) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus tindakan ini? Tindakan dengan riwayat transaksi hanya bisa dinonaktifkan.')) return;
+  const handleTerapiDelete = async (id) => {
+    const namaTerapi = terapiList.find(t => t.id === id)?.nama ?? 'tindakan ini';
+    const confirmed = await confirmDialog.confirm({
+      title: `Hapus "${namaTerapi}"?`,
+      message: 'Tindakan dengan riwayat transaksi aktif tidak dapat dihapus secara permanen. Nonaktifkan terapi jika masih ingin mempertahankan histori datanya.',
+      confirmLabel: 'Ya, Hapus Sekarang',
+      cancelLabel: 'Batal',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
 
     if (isMock) {
       setTerapiList(prev => prev.filter(t => t.id !== id));
-      alert('Tindakan berhasil dihapus (Simulasi).');
+      toast.success('Tindakan berhasil dihapus.', 'Data tindakan telah dihapus dari daftar (mode simulasi).');
       return;
     }
 
@@ -203,11 +202,11 @@ export default function TerapiPage() {
         return data;
       })
       .then(() => {
-        alert('Tindakan terapi berhasil dihapus!');
+        toast.success('Tindakan Berhasil Dihapus', 'Data tindakan terapi telah dihapus secara permanen dari sistem.');
         fetchData();
       })
       .catch(err => {
-        alert(`Error: ${err.message}`);
+        toast.error('Gagal Menghapus Tindakan', err.message);
       });
   };
 
@@ -303,17 +302,32 @@ export default function TerapiPage() {
       });
   };
 
-  const handleKategoriDelete = (id) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus kategori ini? Kategori yang masih terikat pada tindakan terapi tidak bisa dihapus.')) return;
+  const handleKategoriDelete = async (id) => {
+    const namaKategori = kategoriList.find(k => k.id === id)?.nama ?? 'kategori ini';
+    const countTerkait = terapiList.filter(t => t.kategoriId === id).length;
+
+    const confirmed = await confirmDialog.confirm({
+      title: `Hapus Kategori "${namaKategori}"?`,
+      message: countTerkait > 0
+        ? `Kategori ini masih terikat dengan ${countTerkait} tindakan aktif dan tidak dapat dihapus. Hapus atau pindahkan semua tindakan dalam kategori ini terlebih dahulu.`
+        : 'Kategori yang dihapus tidak dapat dipulihkan. Pastikan tidak ada tindakan yang terhubung sebelum melanjutkan.',
+      confirmLabel: countTerkait > 0 ? 'Mengerti' : 'Ya, Hapus',
+      cancelLabel: 'Batal',
+      variant: countTerkait > 0 ? 'warning' : 'danger',
+    });
+    if (!confirmed) return;
 
     if (isMock) {
       const inUse = terapiList.some(t => t.kategoriId === id);
       if (inUse) {
-        alert('Gagal menghapus: Kategori tidak dapat dihapus karena masih digunakan oleh beberapa katalog tindakan.');
+        toast.error(
+          'Proteksi Data Aktif',
+          `Kategori "${namaKategori}" tidak dapat dihapus karena masih digunakan oleh ${countTerkait} katalog tindakan. Hapus tindakan terkait terlebih dahulu.`
+        );
         return;
       }
       setKategoriList(prev => prev.filter(k => k.id !== id));
-      alert('Kategori berhasil dihapus (Simulasi).');
+      toast.success('Kategori Berhasil Dihapus', `Kategori "${namaKategori}" telah dihapus dari sistem (mode simulasi).`);
       return;
     }
 
@@ -324,11 +338,11 @@ export default function TerapiPage() {
         return data;
       })
       .then(() => {
-        alert('Kategori berhasil dihapus!');
+        toast.success('Kategori Berhasil Dihapus', `Kategori "${namaKategori}" telah dihapus secara permanen dari sistem.`);
         fetchData();
       })
       .catch(err => {
-        alert(`Error: ${err.message}`);
+        toast.error('Proteksi Data Aktif', err.message);
       });
   };
 
@@ -474,8 +488,26 @@ export default function TerapiPage() {
           {/* Terapi Table */}
           <div className="overflow-x-auto">
             {loading ? (
-              <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-teal-500"></div>
+              <div className="space-y-3 animate-pulse py-2">
+                <div className="grid grid-cols-7 gap-4 py-3 border-b border-slate-100">
+                  {[...Array(7)].map((_, idx) => (
+                    <div key={idx} className="h-3.5 bg-slate-200 rounded w-2/3" />
+                  ))}
+                </div>
+                {[...Array(5)].map((_, rowIdx) => (
+                  <div key={rowIdx} className="grid grid-cols-7 gap-4 py-3.5 items-center">
+                    <div className="h-3 bg-slate-200 rounded w-3/4" />
+                    <div className="h-3 bg-slate-200 rounded w-1/2" />
+                    <div className="h-3 bg-slate-200 rounded w-1/2 justify-self-end" />
+                    <div className="h-3 bg-slate-200 rounded w-1/2 justify-self-end" />
+                    <div className="h-3 bg-slate-200 rounded w-1/2 justify-self-end" />
+                    <div className="h-6 bg-slate-200 rounded-full w-14 justify-self-center" />
+                    <div className="flex gap-2 justify-end">
+                      <div className="w-8 h-8 bg-slate-200 rounded" />
+                      <div className="w-8 h-8 bg-slate-200 rounded" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <table className="w-full text-left border-collapse">
@@ -483,9 +515,7 @@ export default function TerapiPage() {
                   <tr className="bg-slate-50/50 text-slate-400 uppercase text-[10px] font-bold tracking-wider border-b border-slate-100">
                     <th className="py-4 px-6">Nama Layanan / Tindakan</th>
                     <th className="py-4 px-6">Kategori</th>
-                    <th className="py-4 px-6 text-right">Biaya HPP (Modal)</th>
                     <th className="py-4 px-6 text-right">Tarif Jual</th>
-                    <th className="py-4 px-6 text-right">Profit / Tindakan</th>
                     <th className="py-4 px-6 text-center">Status</th>
                     <th className="py-4 px-6 text-right">Aksi</th>
                   </tr>
@@ -493,14 +523,12 @@ export default function TerapiPage() {
                 <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
                   {filteredTerapiList.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-12 text-center text-slate-400 text-sm">
+                      <td colSpan={5} className="py-12 text-center text-slate-400 text-sm">
                         Tidak ada katalog tindakan terapi yang sesuai pencarian.
                       </td>
                     </tr>
                   ) : (
                     filteredTerapiList.map((terapi) => {
-                      const profit = terapi.harga - terapi.hargaPokok;
-                      const margin = terapi.harga > 0 ? ((profit / terapi.harga) * 100).toFixed(0) : 0;
                       return (
                         <tr key={terapi.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="py-4 px-6 font-bold text-slate-800">
@@ -516,15 +544,8 @@ export default function TerapiPage() {
                               {terapi.kategori?.nama || 'UMUM'}
                             </span>
                           </td>
-                          <td className="py-4 px-6 text-right font-medium text-slate-500">
-                            {formatRupiah(terapi.hargaPokok)}
-                          </td>
                           <td className="py-4 px-6 text-right font-bold text-slate-800">
                             {formatRupiah(terapi.harga)}
-                          </td>
-                          <td className="py-4 px-6 text-right">
-                            <span className="font-bold text-teal-600">{formatRupiah(profit)}</span>
-                            <span className="text-[10px] text-teal-500 ml-1 font-semibold">({margin}%)</span>
                           </td>
                           <td className="py-4 px-6 text-center">
                             {terapi.aktif ? (
@@ -578,8 +599,23 @@ export default function TerapiPage() {
           {/* Kategori Table */}
           <div className="overflow-x-auto">
             {loading ? (
-              <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-teal-500"></div>
+              <div className="space-y-3 animate-pulse py-2">
+                <div className="grid grid-cols-4 gap-4 py-3 border-b border-slate-100">
+                  {[...Array(4)].map((_, idx) => (
+                    <div key={idx} className="h-3.5 bg-slate-200 rounded w-2/3" />
+                  ))}
+                </div>
+                {[...Array(4)].map((_, rowIdx) => (
+                  <div key={rowIdx} className="grid grid-cols-4 gap-4 py-3.5 items-center">
+                    <div className="h-3 bg-slate-200 rounded w-1/2" />
+                    <div className="h-3 bg-slate-200 rounded w-3/4" />
+                    <div className="h-3 bg-slate-200 rounded w-1/3" />
+                    <div className="flex gap-2 justify-end">
+                      <div className="w-8 h-8 bg-slate-200 rounded" />
+                      <div className="w-8 h-8 bg-slate-200 rounded" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <table className="w-full text-left border-collapse">
@@ -700,38 +736,17 @@ export default function TerapiPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-600 uppercase flex items-center gap-1">
-                    Biaya Pokok (HPP / Modal) *
-                    <span title="Pengeluaran modal bidan untuk bahan habis pakai, obat, vaksin, dll.">
-                      <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
-                    </span>
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
-                    <input 
-                      type="number" 
-                      value={formTerapiHargaPokok}
-                      onChange={(e) => setFormTerapiHargaPokok(e.target.value)}
-                      placeholder="0"
-                      className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all font-semibold"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-600 uppercase">Tarif Jual Ke Pasien *</label>
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
-                    <input 
-                      type="number" 
-                      value={formTerapiHarga}
-                      onChange={(e) => setFormTerapiHarga(e.target.value)}
-                      placeholder="0"
-                      className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all font-bold text-teal-700"
-                    />
-                  </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-600 uppercase">Tarif Jual Ke Pasien *</label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
+                  <input 
+                    type="number" 
+                    value={formTerapiHarga}
+                    onChange={(e) => setFormTerapiHarga(e.target.value)}
+                    placeholder="0"
+                    className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all font-bold text-teal-700"
+                  />
                 </div>
               </div>
 
@@ -826,6 +841,15 @@ export default function TerapiPage() {
           </div>
         </div>
       )}
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toast.toasts} onDismiss={toast.dismiss} />
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        options={confirmDialog.options}
+        onConfirm={confirmDialog.handleConfirm}
+        onCancel={confirmDialog.handleCancel}
+      />
     </div>
   );
 }

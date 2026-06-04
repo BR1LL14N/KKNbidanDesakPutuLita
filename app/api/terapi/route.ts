@@ -4,7 +4,7 @@ import { getAllTerapi, createTerapi } from '../../../lib/controllers/terapiContr
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const onlyActive = searchParams.get('aktif') === 'true';
+    const onlyActive = searchParams.get('aktif') === 'true' || searchParams.get('onlyActive') === 'true';
     const data = await getAllTerapi(onlyActive);
     return NextResponse.json(data);
   } catch (error: any) {

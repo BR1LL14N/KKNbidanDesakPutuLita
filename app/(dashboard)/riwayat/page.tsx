@@ -31,6 +31,7 @@ interface TransaksiItem {
   catatan?: string | null;
   metodePembayaran?: { nama: string } | null;
   detailTransaksi: DetailItem[];
+  pasien?: { id: number; nama: string; tanggalLahir?: string | null; alamat?: string | null } | null;
 }
 
 // Complete mock history data for simulation fallback
@@ -435,11 +436,39 @@ export default function RiwayatPage() {
 
       {/* Visits Table */}
       {loadingHistory ? (
-        <div className="bg-white border border-slate-200 rounded-md py-16 flex justify-center items-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#007A64]" />
+        <div className="bg-white rounded-md border border-slate-150 shadow-sm p-6 space-y-4 animate-pulse">
+          <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+            <div className="h-4 bg-slate-200 rounded w-1/4" />
+            <div className="h-5 bg-slate-200 rounded-full w-24" />
+          </div>
+          <div className="space-y-3">
+            <div className="grid grid-cols-5 gap-4 py-2 border-b border-slate-100">
+              {[...Array(5)].map((_, idx) => (
+                <div key={idx} className="h-3 bg-slate-200 rounded w-2/3" />
+              ))}
+            </div>
+            {[...Array(3)].map((_, rowIdx) => (
+              <div key={rowIdx} className="grid grid-cols-5 gap-4 py-3 items-center">
+                <div className="space-y-1.5">
+                  <div className="h-3 bg-slate-200 rounded w-3/4" />
+                  <div className="h-2 bg-slate-150 rounded w-1/2" />
+                </div>
+                <div className="h-3 bg-slate-200 rounded w-1/2" />
+                <div className="h-4 bg-slate-200 rounded w-5/6" />
+                <div className="h-3 bg-slate-200 rounded w-1/3" />
+                <div className="h-6 bg-slate-200 rounded-md w-2/3 justify-self-center" />
+              </div>
+            ))}
+          </div>
         </div>
       ) : (
-        <RiwayatPasienTable transaksi={transaksiHistory} showPasienColumn={!selectedPasien} />
+        <RiwayatPasienTable
+          transaksi={transaksiHistory}
+          showPasienColumn={!selectedPasien}
+          onSelectPasien={handleSelectPasien}
+          fromFilter={fromFilter}
+          toFilter={toFilter}
+        />
       )}
     </div>
   );

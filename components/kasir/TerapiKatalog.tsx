@@ -115,8 +115,18 @@ export default function TerapiKatalog({ terapiList, kategoriList, loading, onAdd
 
       {/* Catalog Grid */}
       {loading ? (
-        <div className="flex justify-center items-center py-24">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#007A64]" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 animate-pulse">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="bg-white border border-slate-150 rounded-xl p-4 space-y-3 h-32 relative">
+              <div className="flex justify-between items-start">
+                <div className="h-3 bg-slate-200 rounded w-1/3" />
+                <div className="h-5 bg-slate-200 rounded-full w-12" />
+              </div>
+              <div className="h-4 bg-slate-200 rounded w-3/4 mt-2" />
+              <div className="h-4 bg-slate-200 rounded w-1/2 mt-1" />
+              <div className="absolute bottom-4 right-4 w-7 h-7 bg-slate-200 rounded-lg" />
+            </div>
+          ))}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-[580px] overflow-y-auto pr-1">

@@ -120,19 +120,34 @@ export default function KasirPage() {
   };
 
   const addManualItem = (nama: string, harga: number) => {
-    const manualId = -Math.floor(Math.random() * 1000000) - 1; // unique negative id
-    const item: CartItem = {
-      terapi: {
-        id: manualId,
-        nama,
-        harga,
-        hargaPokok: 0,
-        isManual: true,
-      },
-      jumlah: 1,
-      hargaOverride: harga,
-    };
-    setCart((prev) => [...prev, item]);
+    setCart((prev) => {
+      const existing = prev.find(
+        (item) =>
+          item.terapi.isManual &&
+          item.terapi.nama.trim().toLowerCase() === nama.trim().toLowerCase() &&
+          (item.hargaOverride !== undefined && item.hargaOverride !== null ? item.hargaOverride : item.terapi.harga) === harga
+      );
+      if (existing) {
+        return prev.map((item) =>
+          item.terapi.id === existing.terapi.id
+            ? { ...item, jumlah: item.jumlah + 1 }
+            : item
+        );
+      }
+      const manualId = -Math.floor(Math.random() * 1000000) - 1; // unique negative id
+      const item: CartItem = {
+        terapi: {
+          id: manualId,
+          nama,
+          harga,
+          hargaPokok: 0,
+          isManual: true,
+        },
+        jumlah: 1,
+        hargaOverride: harga,
+      };
+      return [...prev, item];
+    });
   };
 
   const handleCheckout = async (payload: {

@@ -212,8 +212,48 @@ export default function Dashboard() {
 
   if (loading || !data) {
     return (
-      <div className="flex justify-center items-center h-[60vh]">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#007A64]" />
+      <div className="space-y-7 animate-pulse">
+        {/* Banner skeleton */}
+        <div className="h-12 bg-slate-200 rounded-md w-full" />
+        
+        {/* Stat cards skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="bg-white rounded-md p-5 border border-slate-150/60 shadow-sm space-y-3 h-28 relative">
+              <div className="h-3 bg-slate-200 rounded w-1/2" />
+              <div className="h-6 bg-slate-200 rounded w-3/4 mt-2" />
+              <div className="h-3 bg-slate-200 rounded w-2/3 mt-2" />
+            </div>
+          ))}
+        </div>
+
+        {/* Charts and lists skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-2 bg-white rounded-md p-6 border border-slate-150/60 shadow-sm space-y-5 h-[340px]">
+            <div className="h-4 bg-slate-200 rounded w-1/3 mb-4" />
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="space-y-2.5">
+                <div className="flex justify-between">
+                  <div className="h-3 bg-slate-200 rounded w-1/4" />
+                  <div className="h-3 bg-slate-200 rounded w-1/5" />
+                </div>
+                <div className="h-2 bg-slate-100 rounded-full w-full" />
+              </div>
+            ))}
+          </div>
+          <div className="bg-white rounded-md p-6 border border-slate-150/60 shadow-sm space-y-5 h-[340px] flex flex-col justify-between">
+            <div>
+              <div className="h-4 bg-slate-200 rounded w-1/2 mb-4" />
+              <div className="flex justify-center py-4">
+                <div className="w-28 h-28 rounded-full border-12 border-slate-200 flex items-center justify-center animate-pulse" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="h-3 bg-slate-200 rounded w-full animate-pulse" />
+              <div className="h-3 bg-slate-200 rounded w-5/6 animate-pulse" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

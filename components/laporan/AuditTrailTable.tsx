@@ -44,10 +44,6 @@ const jamId = (iso: string) =>
 
 // ─── Export satu struk transaksi sebagai sheet Excel ─────────────────────────
 function exportSingleTransaksi(tx: TransaksiItem) {
-  const totalHpp = tx.detailTransaksi.reduce((s, d) => s + d.hargaPokok * d.jumlah, 0);
-  const labaKotor = tx.totalHarga - totalHpp;
-  const margin = tx.totalHarga > 0 ? ((labaKotor / tx.totalHarga) * 100).toFixed(1) : '0.0';
-
   const rows: (string | number)[][] = [
     ['STRUK / RINCIAN TRANSAKSI'],
     ['SI-KABID — Sistem Informasi Kasir & Keuangan Bidan'],
@@ -59,33 +55,25 @@ function exportSingleTransaksi(tx: TransaksiItem) {
     ['Catatan Kasir', tx.catatan || 'Tidak ada catatan.'],
     [],
     ['RINCIAN TINDAKAN / ITEM LAYANAN'],
-    ['Nama Item / Tindakan', 'HPP / Unit (Rp)', 'Tarif Jual / Unit (Rp)', 'Qty', 'Subtotal Jual (Rp)', 'Subtotal HPP (Rp)', 'Laba Baris (Rp)'],
+    ['Nama Item / Tindakan', 'Tarif Jual / Unit (Rp)', 'Qty', 'Subtotal Jual (Rp)'],
   ];
 
   tx.detailTransaksi.forEach(d => {
-    const subtotalHpp = d.hargaPokok * d.jumlah;
-    const labaItem = (d.hargaJual - d.hargaPokok) * d.jumlah;
     rows.push([
       d.terapi?.nama || 'Layanan Tidak Diketahui',
-      d.hargaPokok,
       d.hargaJual,
       d.jumlah,
       d.subtotal,
-      subtotalHpp,
-      labaItem,
     ]);
   });
 
   rows.push([]);
   rows.push(['REKAP FINANSIAL INVOICE']);
   rows.push(['Total Omzet (Harga Jual)', tx.totalHarga]);
-  rows.push(['Total HPP (Modal)', totalHpp]);
-  rows.push(['Laba Kotor', labaKotor]);
-  rows.push(['Margin Keuntungan', `${margin}%`]);
 
   const ws = XLSX.utils.aoa_to_sheet(rows);
   ws['!cols'] = [
-    { wch: 35 }, { wch: 20 }, { wch: 22 }, { wch: 6 }, { wch: 20 }, { wch: 20 }, { wch: 18 },
+    { wch: 35 }, { wch: 22 }, { wch: 6 }, { wch: 20 },
   ];
 
   const wb = XLSX.utils.book_new();
@@ -107,16 +95,10 @@ function exportAllAudit(transaksiList: TransaksiItem[]) {
     'Metode Bayar',
     'Status',
     'Total Omzet (Rp)',
-    'Total HPP (Rp)',
-    'Laba Kotor (Rp)',
-    'Margin (%)',
     'Catatan Kasir',
   ];
 
   const dataRows = transaksiList.map((tx, idx) => {
-    const totalHpp = tx.detailTransaksi.reduce((s, d) => s + d.hargaPokok * d.jumlah, 0);
-    const labaKotor = tx.totalHarga - totalHpp;
-    const margin = tx.totalHarga > 0 ? ((labaKotor / tx.totalHarga) * 100).toFixed(1) : '0.0';
     const status = tx.catatan?.toLowerCase().includes('menunggu') ? 'BELUM BAYAR' : 'LUNAS';
     const firstItem = tx.detailTransaksi?.[0]?.terapi?.nama || 'Layanan Medis';
     const layananSummary =
@@ -135,9 +117,6 @@ function exportAllAudit(transaksiList: TransaksiItem[]) {
       tx.metodePembayaran?.nama || '-',
       status,
       tx.totalHarga,
-      totalHpp,
-      labaKotor,
-      `${margin}%`,
       tx.catatan || '-',
     ];
   });
@@ -146,39 +125,33 @@ function exportAllAudit(transaksiList: TransaksiItem[]) {
   const ws1 = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
   ws1['!cols'] = [
     { wch: 5 }, { wch: 22 }, { wch: 20 }, { wch: 8 }, { wch: 28 },
-    { wch: 35 }, { wch: 22 }, { wch: 12 }, { wch: 20 }, { wch: 18 },
-    { wch: 18 }, { wch: 12 }, { wch: 40 },
+    { wch: 35 }, { wch: 22 }, { wch: 12 }, { wch: 20 }, { wch: 40 },
   ];
 
   // Sheet 2: Detail per item
   const detailHeaders = [
     'No. Invoice', 'Tanggal', 'Nama Pasien',
-    'Nama Item / Tindakan', 'HPP/Unit (Rp)', 'Jual/Unit (Rp)',
-    'Qty', 'Subtotal Jual (Rp)', 'Subtotal HPP (Rp)', 'Laba Baris (Rp)',
+    'Nama Item / Tindakan', 'Jual/Unit (Rp)',
+    'Qty', 'Subtotal Jual (Rp)',
   ];
   const detailRows: (string | number)[][] = [];
   transaksiList.forEach(tx => {
     tx.detailTransaksi.forEach(d => {
-      const subtotalHpp = d.hargaPokok * d.jumlah;
-      const laba = (d.hargaJual - d.hargaPokok) * d.jumlah;
       detailRows.push([
         tx.nomorInvoice || '-',
         tglId(tx.tanggal),
         tx.pasien?.nama || '-',
         d.terapi?.nama || '-',
-        d.hargaPokok,
         d.hargaJual,
         d.jumlah,
         d.subtotal,
-        subtotalHpp,
-        laba,
       ]);
     });
   });
   const ws2 = XLSX.utils.aoa_to_sheet([detailHeaders, ...detailRows]);
   ws2['!cols'] = [
     { wch: 22 }, { wch: 20 }, { wch: 28 }, { wch: 35 },
-    { wch: 18 }, { wch: 18 }, { wch: 6 }, { wch: 20 }, { wch: 18 }, { wch: 18 },
+    { wch: 18 }, { wch: 6 }, { wch: 20 },
   ];
 
   const wb = XLSX.utils.book_new();
@@ -233,8 +206,28 @@ export default function AuditTrailTable({ transaksiList, loading }: AuditTrailTa
 
       <div className="overflow-x-auto">
         {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#007A64]" />
+          <div className="space-y-3 animate-pulse py-2">
+            <div className="grid grid-cols-6 gap-4 py-2.5 border-b border-slate-100">
+              {[...Array(6)].map((_, idx) => (
+                <div key={idx} className="h-3 bg-slate-200 rounded w-2/3" />
+              ))}
+            </div>
+            {[...Array(5)].map((_, rowIdx) => (
+              <div key={rowIdx} className="grid grid-cols-6 gap-4 py-3 items-center">
+                <div className="space-y-1.5">
+                  <div className="h-3 bg-slate-200 rounded w-3/4" />
+                  <div className="h-2 bg-slate-150 rounded w-1/2" />
+                </div>
+                <div className="space-y-1.5">
+                  <div className="h-3 bg-slate-200 rounded w-3/4" />
+                  <div className="h-2 bg-slate-150 rounded w-1/2" />
+                </div>
+                <div className="h-6 bg-slate-200 rounded-full w-14 justify-self-start" />
+                <div className="h-3 bg-slate-200 rounded w-2/3" />
+                <div className="h-3 bg-slate-200 rounded w-1/2 justify-self-end" />
+                <div className="h-6 bg-slate-200 rounded-md w-12 justify-self-center" />
+              </div>
+            ))}
           </div>
         ) : (
           <table className="w-full text-left border-collapse text-xs">
