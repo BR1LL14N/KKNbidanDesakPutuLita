@@ -387,16 +387,32 @@ const TABS: { key: ChartTab; label: string; Icon: React.ElementType }[] = [
 ];
 
 export default function LaporanCharts() {
-  const currentYear = new Date().getFullYear();
+  const [mounted, setMounted] = useState(false);
+  const [currentYear, setCurrentYear] = useState(2026); // SSR-safe fallback
+
+  useEffect(() => {
+    const y = new Date().getFullYear();
+    setCurrentYear(y);
+    setMounted(true);
+  }, []);
+
   const yearOptions = [currentYear, currentYear - 1, currentYear - 2];
 
   const [activeTab, setActiveTab] = useState<ChartTab>('omzet');
-  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [selectedYear, setSelectedYear] = useState(0); // will be set after mount
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isMock, setIsMock] = useState(false);
 
+  // Sync selectedYear after mount so it uses real current year
   useEffect(() => {
+    if (mounted && selectedYear === 0) {
+      setSelectedYear(currentYear);
+    }
+  }, [mounted, currentYear]);
+
+  useEffect(() => {
+    if (!selectedYear) return; // wait until mounted & year is set
     setLoading(true);
     fetch(`/api/transaksi/analytics?year=${selectedYear}`, { cache: 'no-store' })
       .then(res => {

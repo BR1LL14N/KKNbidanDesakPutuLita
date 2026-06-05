@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Calendar, CreditCard, Activity, ChevronDown, FileSpreadsheet, Printer } from 'lucide-react';
 import BracketFrame from '@/components/ui/BracketFrame';
 import * as XLSX from 'xlsx';
+import { useReactToPrint } from 'react-to-print';
 
 interface DetailItem {
   id: number;
@@ -62,6 +63,11 @@ export default function RiwayatPasienTable({
   toFilter
 }: RiwayatPasienTableProps) {
   const [expandedPasienIds, setExpandedPasienIds] = useState<Record<number, boolean>>({});
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Calculate intervals grouped by patient
   const intervals: Record<number, string> = {};
@@ -269,69 +275,27 @@ export default function RiwayatPasienTable({
     XLSX.writeFile(wb, `Laporan_Riwayat_Kunjungan_${rangeStr}${nameSuffix}.xlsx`);
   };
 
-  const renderPrintHeader = () => {
-    const totalOmzet = transaksi.reduce((acc, curr) => acc + curr.totalHarga, 0);
-    const dateNowStr = new Date().toLocaleDateString('id-ID', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    }) + ' ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  const totalOmzet = transaksi.reduce((acc, curr) => acc + curr.totalHarga, 0);
+  const totalKunjungan = transaksi.length;
+  const totalPasienUnik = Object.keys(txByPatient).length;
+  const periodeStr = `${fromFilter ? formatDate(fromFilter) : 'Semua Periode'} s.d. ${toFilter ? formatDate(toFilter) : 'Hari Ini'}`;
+  const pasienStr = selectedPasienInfo
+    ? `${selectedPasienInfo.nama} (PID-${String(selectedPasienInfo.id).padStart(6, '0')})`
+    : 'Semua Pasien Terdaftar';
+  const judulTabel = showPasienColumn
+    ? 'Tabel Ringkasan Kunjungan per Pasien'
+    : 'Tabel Log Riwayat Kunjungan Pasien';
 
-    return (
-      <div className="hidden print:block mb-8 border-b-4 border-slate-800 pb-4 w-full">
-        {/* Kop Surat Bidan */}
-        <div className="flex justify-between items-start border-b-2 border-slate-800 pb-3">
-          <div>
-            <h1 className="text-xl font-black text-slate-900 tracking-tight">SI-KABID (Sistem Informasi KIA Kasir Bidan)</h1>
-            <p className="text-xs text-slate-600 font-bold mt-1">Klinik Bidan Mandiri Desak Putu Lita, S.Tr.Keb</p>
-            <p className="text-[10px] text-slate-500 font-semibold">Pelayanan KIA, KB, Imunisasi & Persalinan 24 Jam • Jl. Kertajaya No. 12, Surabaya</p>
-          </div>
-          <div className="text-right text-[9px] text-slate-550 font-mono font-bold leading-normal">
-            <p>Tanggal Cetak: {dateNowStr} WIB</p>
-            <p>Dokumen: Laporan Riwayat Pasien</p>
-            <p>Status: Resmi / Terverifikasi</p>
-          </div>
-        </div>
-
-        {/* Laporan Metadata & Statistik Ringkas */}
-        <div className="mt-4 grid grid-cols-2 gap-6 text-xs bg-slate-50 p-4 rounded border border-slate-200">
-          <div className="space-y-1.5">
-            <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Kriteria & Filter Laporan</p>
-            <p><span className="font-semibold text-slate-500">Periode Laporan:</span> <strong className="text-slate-800">{fromFilter ? formatDate(fromFilter) : 'Semua Periode'} s.d. {toFilter ? formatDate(toFilter) : 'Hari Ini'}</strong></p>
-            <p>
-              <span className="font-semibold text-slate-500">Pasien Terfilter:</span>{' '}
-              <strong className="text-slate-800">
-                {selectedPasienInfo
-                  ? `${selectedPasienInfo.nama} (PID-${String(selectedPasienInfo.id).padStart(6, '0')})`
-                  : 'Semua Pasien Terdaftar'}
-              </strong>
-            </p>
-            {selectedPasienInfo?.alamat && (
-              <p><span className="font-semibold text-slate-500">Alamat Pasien:</span> <span className="text-slate-700 italic">{selectedPasienInfo.alamat}</span></p>
-            )}
-          </div>
-          <div className="space-y-1.5 text-right flex flex-col justify-between items-end">
-            <div>
-              <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Ringkasan Statistik</p>
-              <p><span className="font-semibold text-slate-500">Total Kunjungan:</span> <strong className="text-slate-800">{transaksi.length} Kunjungan</strong></p>
-              <p><span className="font-semibold text-slate-500">Total Pasien Unik:</span> <strong className="text-slate-800">{Object.keys(txByPatient).length} Pasien</strong></p>
-              <p><span className="font-semibold text-slate-500">Total Pengeluaran / Omzet:</span> <strong className="text-slate-850 font-black">{formatRupiah(totalOmzet)}</strong></p>
-            </div>
-          </div>
-        </div>
-
-        <h3 className="text-center font-black text-xs text-slate-800 uppercase tracking-wider mt-6">
-          {showPasienColumn ? 'Tabel Ringkasan Kunjungan per Pasien' : 'Tabel Log Riwayat Kunjungan Pasien'}
-        </h3>
-      </div>
-    );
-  };
+  const printRef = useRef<HTMLDivElement>(null);
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: 'Laporan Riwayat Kunjungan',
+  });
 
   // If showPasienColumn is true (Global View), we render the grouped patient log
   if (showPasienColumn) {
     return (
-      <div className="bg-white rounded-md border border-slate-150 shadow-sm relative overflow-hidden flex flex-col p-6 space-y-4 print:border-none print:shadow-none print:p-0">
-        {renderPrintHeader()}
+      <div className="bg-white rounded-md border border-slate-150 shadow-sm relative overflow-hidden flex flex-col p-6 space-y-4">
         <BracketFrame />
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-3 print:hidden">
@@ -369,7 +333,7 @@ export default function RiwayatPasienTable({
               Ekspor Excel
             </button>
             <button
-              onClick={() => window.print()}
+              onClick={() => handlePrint()}
               disabled={transaksi.length === 0}
               className="px-3 py-1.5 bg-[#007A64] hover:bg-[#006653] disabled:opacity-50 text-white rounded-md font-black text-[10px] uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer"
             >
@@ -474,12 +438,12 @@ export default function RiwayatPasienTable({
                                   <table className="w-full text-left border-collapse text-[11px]">
                                     <thead>
                                       <tr className="text-slate-400 uppercase text-[8px] font-extrabold tracking-wider border-b border-slate-100 pb-1.5">
-                                        <th className="py-2 px-3">Tanggal & Jam</th>
-                                        <th className="py-2 px-3">No. Invoice</th>
-                                        <th className="py-2 px-3">Tindakan Medis / Item</th>
-                                        <th className="py-2 px-3 text-right">Biaya</th>
-                                        <th className="py-2 px-3">Metode Bayar</th>
-                                        <th className="py-2 px-3 text-center">Interval</th>
+                                        <th className="py-2.5 px-3">Tanggal & Jam</th>
+                                        <th className="py-2.5 px-3">No. Invoice</th>
+                                        <th className="py-2.5 px-3">Tindakan Medis / Item</th>
+                                        <th className="py-2.5 px-3 text-right">Biaya</th>
+                                        <th className="py-2.5 px-3">Metode Bayar</th>
+                                        <th className="py-2.5 px-3 text-center">Interval</th>
                                       </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-50 text-slate-700">
@@ -548,14 +512,87 @@ export default function RiwayatPasienTable({
             </tbody>
           </table>
         </div>
+
+        {/* Printable Content for react-to-print */}
+        {mounted && (
+          <div className="hidden print:block font-sans p-6 text-slate-800 bg-white" ref={printRef}>
+            {/* Kop Surat */}
+            <div className="flex justify-between items-start border-b-2 border-slate-800 pb-3 mb-4">
+              <div>
+                <h1 className="text-base font-extrabold text-slate-900 leading-tight">SI-KABID — Sistem Informasi KIA &amp; Kasir Bidan</h1>
+                <p className="text-xs text-slate-600 mt-0.5">Klinik Bidan Mandiri Desak Putu Lita, S.Tr.Keb</p>
+                <p className="text-xs text-slate-600">Pelayanan KIA, KB, Imunisasi &amp; Persalinan 24 Jam &bull; Jl. Kertajaya No. 12, Surabaya</p>
+              </div>
+              <div className="text-right text-[10px] text-slate-500 font-mono leading-relaxed">
+                <p>Dicetak: {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}, {new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</p>
+                <p>Dokumen: Laporan Riwayat Kunjungan</p>
+                <p>Status: Resmi / Terverifikasi</p>
+              </div>
+            </div>
+
+            <h2 className="text-center text-xs font-black uppercase tracking-wider my-3 text-slate-700">{judulTabel}</h2>
+
+            {/* Info Box */}
+            <div className="grid grid-cols-2 border border-slate-200 rounded overflow-hidden mb-3 text-xs">
+              <div className="p-3 bg-slate-50/50 space-y-1">
+                <p><span className="text-slate-400">Periode:</span> <strong>{periodeStr}</strong></p>
+                <p><span className="text-slate-400">Pasien Terfilter:</span> <strong>{pasienStr}</strong></p>
+                {selectedPasienInfo?.alamat && <p><span className="text-slate-400">Alamat:</span> {selectedPasienInfo.alamat}</p>}
+              </div>
+              <div className="p-3 bg-slate-50/50 text-right border-l border-slate-200 space-y-1">
+                <p><span className="text-slate-400">Total Kunjungan:</span> <strong>{totalKunjungan} kunjungan</strong></p>
+                <p><span className="text-slate-400">Total Pasien Unik:</span> <strong>{totalPasienUnik} pasien</strong></p>
+                <p><span className="text-slate-400">Total Omzet:</span> <strong className="text-[#007A64]">{formatRupiah(totalOmzet)}</strong></p>
+              </div>
+            </div>
+
+            {/* Tabel Data */}
+            <table className="w-full border-collapse border border-slate-200 text-xs">
+              <thead>
+                <tr className="bg-slate-100 text-slate-600 font-bold border-b border-slate-200 text-[10px] uppercase tracking-wider">
+                  <th className="p-2 border border-slate-200 text-center w-8">No.</th>
+                  <th className="p-2 border border-slate-200 text-left">Nama Pasien</th>
+                  <th className="p-2 border border-slate-200 text-center">Jml. Kunjungan</th>
+                  <th className="p-2 border border-slate-200 text-left">Kunjungan Terakhir</th>
+                  <th className="p-2 border border-slate-200 text-right">Total Omzet (Rp)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedGroups.map((g, idx) => (
+                  <tr key={g.pasien.id} className="border-b border-slate-200 bg-white odd:bg-slate-50/30">
+                    <td className="p-2 border border-slate-200 text-center text-slate-400">{idx + 1}</td>
+                    <td className="p-2 border border-slate-200">
+                      <strong className="text-slate-800">{g.pasien.nama}</strong>
+                      <div className="text-[10px] text-slate-400 mt-0.5">{g.pasien.alamat || '-'}</div>
+                    </td>
+                    <td className="p-2 border border-slate-200 text-center font-bold">{g.transaksiList.length} kunjungan</td>
+                    <td className="p-2 border border-slate-200">{formatDate(g.terakhir)}</td>
+                    <td className="p-2 border border-slate-200 text-right font-bold">{formatRupiah(g.totalHarga)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="bg-slate-50 font-bold">
+                  <td colSpan={4} className="p-2 border border-slate-200 text-right text-[10px] uppercase tracking-wider">
+                    Total {sortedGroups.length} Pasien
+                  </td>
+                  <td className="p-2 border border-slate-200 text-right text-sm text-[#007A64] font-black">{formatRupiah(totalOmzet)}</td>
+                </tr>
+              </tfoot>
+            </table>
+
+            <div className="mt-6 pt-2 border-t border-slate-200 text-center text-[10px] text-slate-400">
+              Dicetak dari Sistem SI-KABID &bull; Dokumen ini digenerate secara otomatis &bull; {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
   // Otherwise (Single Patient View), show the detailed chronological log table
   return (
-    <div className="bg-white rounded-md border border-slate-150 shadow-sm relative overflow-hidden flex flex-col p-6 space-y-4 print:border-none print:shadow-none print:p-0">
-      {renderPrintHeader()}
+    <div className="bg-white rounded-md border border-slate-150 shadow-sm relative overflow-hidden flex flex-col p-6 space-y-4">
       <BracketFrame />
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-3 print:hidden">
@@ -576,7 +613,7 @@ export default function RiwayatPasienTable({
             Ekspor Excel
           </button>
           <button
-            onClick={() => window.print()}
+            onClick={() => handlePrint()}
             disabled={transaksi.length === 0}
             className="px-3 py-1.5 bg-[#007A64] hover:bg-[#006653] disabled:opacity-50 text-white rounded-md font-black text-[10px] uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer"
           >
@@ -666,6 +703,89 @@ export default function RiwayatPasienTable({
           </tbody>
         </table>
       </div>
+
+      {/* Printable Content for react-to-print */}
+      {mounted && (
+        <div className="hidden print:block font-sans p-6 text-slate-800 bg-white" ref={printRef}>
+          {/* Kop Surat */}
+          <div className="flex justify-between items-start border-b-2 border-slate-800 pb-3 mb-4">
+            <div>
+              <h1 className="text-base font-extrabold text-slate-900 leading-tight">SI-KABID — Sistem Informasi KIA &amp; Kasir Bidan</h1>
+              <p className="text-xs text-slate-600 mt-0.5">Klinik Bidan Mandiri Desak Putu Lita, S.Tr.Keb</p>
+              <p className="text-xs text-slate-600">Pelayanan KIA, KB, Imunisasi &amp; Persalinan 24 Jam &bull; Jl. Kertajaya No. 12, Surabaya</p>
+            </div>
+            <div className="text-right text-[10px] text-slate-500 font-mono leading-relaxed">
+              <p>Dicetak: {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}, {new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</p>
+              <p>Dokumen: Laporan Riwayat Kunjungan</p>
+              <p>Status: Resmi / Terverifikasi</p>
+            </div>
+          </div>
+
+          <h2 className="text-center text-xs font-black uppercase tracking-wider my-3 text-slate-700">{judulTabel}</h2>
+
+          {/* Info Box */}
+          <div className="grid grid-cols-2 border border-slate-200 rounded overflow-hidden mb-3 text-xs">
+            <div className="p-3 bg-slate-50/50 space-y-1">
+              <p><span className="text-slate-400">Periode:</span> <strong>{periodeStr}</strong></p>
+              <p><span className="text-slate-400">Pasien Terfilter:</span> <strong>{pasienStr}</strong></p>
+              {selectedPasienInfo?.alamat && <p><span className="text-slate-400">Alamat:</span> {selectedPasienInfo.alamat}</p>}
+            </div>
+            <div className="p-3 bg-slate-50/50 text-right border-l border-slate-200 space-y-1">
+              <p><span className="text-slate-400">Total Kunjungan:</span> <strong>{totalKunjungan} kunjungan</strong></p>
+              <p><span className="text-slate-400">Total Pasien Unik:</span> <strong>{totalPasienUnik} pasien</strong></p>
+              <p><span className="text-slate-400">Total Omzet:</span> <strong className="text-[#007A64]">{formatRupiah(totalOmzet)}</strong></p>
+            </div>
+          </div>
+
+          {/* Tabel Data */}
+          <table className="w-full border-collapse border border-slate-200 text-xs">
+            <thead>
+              <tr className="bg-slate-100 text-slate-600 font-bold border-b border-slate-200 text-[10px] uppercase tracking-wider">
+                <th className="p-2 border border-slate-200 text-center w-8">No.</th>
+                <th className="p-2 border border-slate-200 text-left w-36">Tanggal &amp; Jam</th>
+                <th className="p-2 border border-slate-200 text-left">Layanan / Tindakan</th>
+                <th className="p-2 border border-slate-200 text-left">Metode Bayar</th>
+                <th className="p-2 border border-slate-200 text-center w-24">Interval</th>
+                <th className="p-2 border border-slate-200 text-right w-32">Biaya (Rp)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {displayTx.map((tx, idx) => {
+                const layanan = tx.detailTransaksi?.[0]?.terapi?.nama || tx.detailTransaksi?.[0]?.namaManual || 'Layanan Medis';
+                const allLayanan = tx.detailTransaksi.length > 1
+                  ? `${layanan} & ${tx.detailTransaksi.length - 1} tindakan lain`
+                  : layanan;
+                const interval = intervals[tx.id] || '-';
+                return (
+                  <tr key={tx.id} className="border-b border-slate-200 bg-white odd:bg-slate-50/30">
+                    <td className="p-2 border border-slate-200 text-center text-slate-400">{idx + 1}</td>
+                    <td className="p-2 border border-slate-200">
+                      <strong className="text-slate-800">{formatDate(tx.tanggal)}</strong>
+                      <div className="text-[10px] text-slate-400 mt-0.5">{formatTime(tx.tanggal)} WIB</div>
+                    </td>
+                    <td className="p-2 border border-slate-200">{allLayanan}</td>
+                    <td className="p-2 border border-slate-200">{tx.metodePembayaran?.nama || '-'}</td>
+                    <td className="p-2 border border-slate-200 text-center text-slate-500">{interval}</td>
+                    <td className="p-2 border border-slate-200 text-right font-bold">{formatRupiah(tx.totalHarga)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+            <tfoot>
+              <tr className="bg-slate-50 font-bold">
+                <td colSpan={5} className="p-2 border border-slate-200 text-right text-[10px] uppercase tracking-wider">
+                  Total {totalKunjungan} Kunjungan
+                </td>
+                <td className="p-2 border border-slate-200 text-right text-sm text-[#007A64] font-black">{formatRupiah(totalOmzet)}</td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <div className="mt-6 pt-2 border-t border-slate-200 text-center text-[10px] text-slate-400">
+            Dicetak dari Sistem SI-KABID &bull; Dokumen ini digenerate secara otomatis &bull; {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

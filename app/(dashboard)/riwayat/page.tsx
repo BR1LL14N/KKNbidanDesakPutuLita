@@ -271,18 +271,21 @@ export default function RiwayatPage() {
 
   return (
     <div className="space-y-6">
+      {/* MockBanner — hanya di layar */}
       {isMock && (
-        <MockBanner message="Basis data MySQL belum terhubung. Riwayat kunjungan disimulasikan menggunakan data mock interaktif." />
+        <div className="print:hidden">
+          <MockBanner message="Basis data MySQL belum terhubung. Riwayat kunjungan disimulasikan menggunakan data mock interaktif." />
+        </div>
       )}
 
-      {/* Page Header */}
-      <div>
+      {/* Page Header — hanya di layar */}
+      <div className="print:hidden">
         <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Rekam Medis & Riwayat</p>
         <h2 className="text-lg font-black text-slate-800 tracking-tight mt-0.5">Riwayat Kunjungan Pasien</h2>
       </div>
 
-      {/* Search Bar Panel */}
-      <div className="bg-white p-6 border border-slate-200/60 rounded-md shadow-sm relative flex flex-col gap-4">
+      {/* Search Bar Panel — hanya di layar */}
+      <div className="bg-white p-6 border border-slate-200/60 rounded-md shadow-sm relative flex flex-col gap-4 print:hidden">
         <BracketFrame />
 
         <label className="text-xs font-extrabold text-slate-500 uppercase tracking-wider block">
@@ -335,9 +338,9 @@ export default function RiwayatPage() {
         </div>
       </div>
 
+      {/* Patient Biodata Card — hanya di layar */}
       {selectedPasien && (
-        /* Patient Biodata Card */
-        <div className="bg-white p-6 border border-slate-200/60 rounded-md shadow-sm relative grid grid-cols-1 md:grid-cols-12 gap-6 items-center animate-in fade-in duration-200">
+        <div className="bg-white p-6 border border-slate-200/60 rounded-md shadow-sm relative grid grid-cols-1 md:grid-cols-12 gap-6 items-center animate-in fade-in duration-200 print:hidden">
           <BracketFrame />
 
           {/* Left avatar block */}
@@ -386,8 +389,8 @@ export default function RiwayatPage() {
         </div>
       )}
 
-      {/* Date Filter Bar */}
-      <div className="bg-white p-4 border border-slate-200/60 rounded-md shadow-sm relative flex flex-col md:flex-row justify-between items-center gap-4">
+      {/* Date Filter Bar — hanya di layar */}
+      <div className="bg-white p-4 border border-slate-200/60 rounded-md shadow-sm relative flex flex-col md:flex-row justify-between items-center gap-4 print:hidden">
         <BracketFrame />
         <div className="flex items-center gap-2.5 text-slate-500 text-xs font-bold uppercase tracking-wider">
           <Calendar className="w-4 h-4 text-[#007A64]" />

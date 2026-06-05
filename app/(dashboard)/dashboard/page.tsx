@@ -77,6 +77,11 @@ const MOCK_DATA: DashboardData = {
 };
 
 export default function Dashboard() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isMock, setIsMock] = useState(false);
@@ -129,9 +134,11 @@ export default function Dashboard() {
     return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
-  const periodLabel = startDate === endDate 
-    ? `Hari ini (${formatDateLabel(startDate)})` 
-    : `${formatDateLabel(startDate)} s/d ${formatDateLabel(endDate)}`;
+  const periodLabel = !mounted
+    ? 'Memuat...'
+    : startDate === endDate 
+      ? `Hari ini (${formatDateLabel(startDate)})` 
+      : `${formatDateLabel(startDate)} s/d ${formatDateLabel(endDate)}`;
 
   useEffect(() => {
     setLoading(true);

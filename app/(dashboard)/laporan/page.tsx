@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, CreditCard, Calendar, Filter, FileSpreadsheet, Printer } from 'lucide-react';
+import { TrendingUp, CreditCard, Calendar, Filter, FileSpreadsheet } from 'lucide-react';
 import { exportLaporanToExcel } from '@/lib/exportExcel';
 import MockBanner from '@/components/ui/MockBanner';
 import BracketFrame from '@/components/ui/BracketFrame';
@@ -43,11 +43,9 @@ const MOCK_TRANSAKSI = [
 export default function LaporanPage() {
   const [activeTab, setActiveTab] = useState<'laporan' | 'metode'>('laporan');
 
-  const [startDate, setStartDate] = useState(() => {
-    const d = new Date();
-    return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
-  });
-  const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [mounted, setMounted] = useState(false);
 
   const [rekap, setRekap] = useState<any>(null);
   const [transaksiList, setTransaksiList] = useState<any[]>([]);
@@ -56,7 +54,15 @@ export default function LaporanPage() {
   const [isMock, setIsMock] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
+  useEffect(() => {
+    setMounted(true);
+    const d = new Date();
+    setStartDate(new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0]);
+    setEndDate(new Date().toISOString().split('T')[0]);
+  }, []);
+
   const fetchData = async () => {
+    if (!startDate || !endDate) return;
     setLoading(true);
     try {
       const [resRekap, resTx, resMet] = await Promise.all([
@@ -141,20 +147,23 @@ export default function LaporanPage() {
 
   return (
     <div className="space-y-6">
+      {/* MockBanner — hanya di layar */}
       {isMock && (
-        <MockBanner message="Basis data MySQL belum terhubung. Menampilkan rekapitulasi laba rugi bulanan dan riwayat audit finansial sesuai referensi mockup." />
+        <div className="print:hidden">
+          <MockBanner message="Basis data MySQL belum terhubung. Menampilkan rekapitulasi laba rugi bulanan dan riwayat audit finansial sesuai referensi mockup." />
+        </div>
       )}
 
-      {/* Page header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      {/* Page header — hanya di layar */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
         <div>
           <p className="text-xs text-slate-400 font-semibold">Keuangan & Audit</p>
           <h2 className="text-lg font-black text-slate-800 tracking-tight mt-0.5">Laporan Keuangan</h2>
         </div>
       </div>
 
-      {/* Tab navigation */}
-      <div className="border-b border-slate-200 flex gap-6 text-xs">
+      {/* Tab navigation — hanya di layar */}
+      <div className="border-b border-slate-200 flex gap-6 text-xs print:hidden">
         <button
           onClick={() => setActiveTab('laporan')}
           className={`pb-4 font-bold transition-all relative flex items-center gap-2 ${
@@ -179,8 +188,8 @@ export default function LaporanPage() {
       {/* Tab 1: Financial Report */}
       {activeTab === 'laporan' && (
         <div className="space-y-6">
-          {/* Date filter bar */}
-          <div className="bg-white p-4 border border-slate-200/60 rounded-md shadow-sm relative flex flex-col md:flex-row justify-between items-center gap-4">
+          {/* Date filter bar — hanya di layar */}
+          <div className="bg-white p-4 border border-slate-200/60 rounded-md shadow-sm relative flex flex-col md:flex-row justify-between items-center gap-4 print:hidden">
             <BracketFrame />
             <div className="flex items-center gap-2.5 text-slate-500 text-xs font-bold uppercase tracking-wider">
               <Calendar className="w-4 h-4 text-[#007A64]" />
@@ -190,13 +199,13 @@ export default function LaporanPage() {
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <div className="relative w-full sm:w-auto">
                   <BracketFrame />
-                  <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
+                  <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} suppressHydrationWarning
                     className="px-3.5 py-2 border border-slate-200 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#007A64] text-slate-700 font-bold w-full sm:w-auto" />
                 </div>
                 <span className="text-slate-400 font-bold">sampai</span>
                 <div className="relative w-full sm:w-auto">
                   <BracketFrame />
-                  <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)}
+                  <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} suppressHydrationWarning
                     className="px-3.5 py-2 border border-slate-200 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#007A64] text-slate-700 font-bold w-full sm:w-auto" />
                 </div>
               </div>
@@ -205,7 +214,8 @@ export default function LaporanPage() {
                 <button
                   type="button"
                   onClick={handleExportExcel}
-                  disabled={isExporting || loading || !rekap}
+                  disabled={!mounted || isExporting || loading || !rekap}
+                  suppressHydrationWarning
                   className="px-4 py-2 border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-md font-bold transition-all flex items-center gap-1.5 relative shrink-0 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <BracketFrame />
@@ -215,17 +225,6 @@ export default function LaporanPage() {
                     <FileSpreadsheet className="w-3.5 h-3.5" />
                   )}
                   {isExporting ? 'Menyiapkan...' : 'Ekspor Excel'}
-                </button>
-
-                {/* Cetak PDF */}
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 rounded-md font-bold text-slate-700 transition-all flex items-center gap-1.5 relative shrink-0 shadow-sm"
-                >
-                  <BracketFrame />
-                  <Printer className="w-3.5 h-3.5" />
-                  Cetak PDF
                 </button>
 
                 {/* Terapkan Filter */}
@@ -239,9 +238,9 @@ export default function LaporanPage() {
             </div>
           </div>
 
-          {/* Excel export info note */}
+          {/* Excel export info note — hanya di layar */}
           {rekap && !loading && (
-            <div className="bg-emerald-50/60 border border-emerald-200/60 rounded-md px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="bg-emerald-50/60 border border-emerald-200/60 rounded-md px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center gap-3 print:hidden">
               <FileSpreadsheet className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5 sm:mt-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] font-black text-emerald-700 uppercase tracking-wider">File Excel yang dihasilkan berisi 4 sheet terpisah:</p>
@@ -261,23 +260,32 @@ export default function LaporanPage() {
             </div>
           )}
 
-          {/* Financial summary cards — isolated component */}
-
+          {/* Kartu statistik — hanya di layar */}
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 print:hidden">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="bg-white border border-slate-200 rounded-md h-28 animate-pulse" />
               ))}
             </div>
           ) : rekap ? (
-            <LaporanStats rekap={rekap} />
+            <div className="print:hidden">
+              <LaporanStats rekap={rekap} />
+            </div>
           ) : null}
 
-          {/* Analytics charts — self-contained, fetches its own analytics data */}
-          <LaporanCharts />
+          {/* Analytics charts — hanya di layar, tidak dicetak */}
+          <div className="print:hidden">
+            <LaporanCharts />
+          </div>
 
-          {/* Audit trail table — manages expand/collapse state internally */}
-          <AuditTrailTable transaksiList={transaksiList} loading={loading} />
+          {/* Audit trail table — dicetak, dengan print header sendiri */}
+          <AuditTrailTable
+            transaksiList={transaksiList}
+            loading={loading}
+            startDate={startDate}
+            endDate={endDate}
+            rekap={rekap}
+          />
         </div>
       )}
 

@@ -77,7 +77,7 @@ body {
 }
 
 @media print {
-  /* Sembunyikan elemen non-printable */
+  /* ─── Sembunyikan elemen non-printable ─────────────────────────── */
   aside,
   nav,
   .no-print,
@@ -88,10 +88,12 @@ body {
     display: none !important;
   }
 
-  /* Reset layout utama agar lebar penuh */
-  body,
-  main,
-  .flex-1 {
+  /* ─── KRITIS: Hapus semua batasan overflow & height di layout ──── */
+  /* Ini adalah penyebab utama halaman cetak yang kosong.
+     Layout Next.js menggunakan overflow-hidden & h-screen pada div-div
+     pembungkus sehingga konten terpotong saat browser mencoba mencetak. */
+  html,
+  body {
     background: white !important;
     color: black !important;
     width: 100% !important;
@@ -100,19 +102,64 @@ body {
     padding: 0 !important;
     overflow: visible !important;
     height: auto !important;
+    min-height: auto !important;
     position: static !important;
   }
 
-  /* Reset margin/padding main content */
-  main {
-    padding-top: 0 !important;
+  /* Target semua div pembungkus dashboard agar tidak memotong konten */
+  body > div,
+  body > div > div,
+  body > div > div > div,
+  body > div > div > div > div {
+    overflow: visible !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
-  /* Format tabel untuk cetak */
+  /* Target kelas Tailwind spesifik yang dipakai di layout.tsx */
+  .h-screen {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+  }
+
+  .overflow-hidden {
+    overflow: visible !important;
+  }
+
+  .overflow-y-auto {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  /* Reset main content wrapper */
+  main {
+    padding-top: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+    flex: unset !important;
+  }
+
+  /* Hapus batasan lebar pada container konten halaman */
+  .max-w-\[1400px\] {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* ─── Format tabel untuk cetak ──────────────────────────────────── */
   table {
     border-collapse: collapse !important;
     width: 100% !important;
     margin-top: 10px !important;
+    page-break-inside: auto !important;
   }
 
   th, td {
@@ -120,13 +167,39 @@ body {
     padding: 6px 8px !important;
     color: black !important;
     background: transparent !important;
+    font-size: 10pt !important;
   }
 
   thead {
     display: table-header-group !important;
   }
 
-  tr {
+  tbody tr {
     page-break-inside: avoid !important;
+    page-break-after: auto !important;
+  }
+
+  /* ─── Tampilkan konten yang biasanya hidden ──────────────────────── */
+  /* Perhatian: aturan ini harus di bawah selector umum di atas          */
+  .print\:block {
+    display: block !important;
+  }
+
+  /* print:hidden harus menang atas semua selector lain */
+  .print\:hidden,
+  [class*="print:hidden"] {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* print:table-footer-group untuk tfoot */
+  .print\:table-footer-group {
+    display: table-footer-group !important;
+  }
+
+  /* ─── Page setup ────────────────────────────────────────────────── */
+  @page {
+    size: A4 landscape;
+    margin: 15mm;
   }
 }
