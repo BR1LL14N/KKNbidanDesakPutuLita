@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import {
-  ShoppingCart, Search, Trash2, Plus, Minus, CreditCard, FileText, AlertTriangle, X, Pencil
+  ShoppingCart, Search, Trash2, Plus, Minus, CreditCard, FileText, AlertTriangle, X, Pencil, RotateCw
 } from 'lucide-react';
 import BracketFrame from '@/components/ui/BracketFrame';
 
@@ -58,6 +58,8 @@ interface CheckoutPanelProps {
   metodeList: Metode[];
   isSubmitting: boolean;
   errorMessage: string;
+  loading?: boolean;
+  onRefresh?: () => void;
   onUpdateQty: (terapiId: number, delta: number) => void;
   onRemove: (terapiId: number) => void;
   onUpdatePrice: (terapiId: number, newPrice: number) => void;
@@ -97,12 +99,19 @@ export default function CheckoutPanel({
   metodeList = mockMetodeList,   // ← fallback otomatis bila undefined/null
   isSubmitting,
   errorMessage,
+  loading = false,
+  onRefresh,
   onUpdateQty,
   onRemove,
   onUpdatePrice,
   onAddManualItem,
   onCheckout,
 }: CheckoutPanelProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [patientMode, setPatientMode] = useState<'existing' | 'new'>('existing');
   const [selectedPasienId, setSelectedPasienId] = useState('');
   const [selectedPasienObj, setSelectedPasienObj] = useState<Pasien | null>(null);
@@ -240,7 +249,9 @@ export default function CheckoutPanel({
               </div>
             </div>
 
-            {patientMode === 'existing' ? (
+            {mounted && loading ? (
+              <div className="h-10 bg-slate-100 animate-pulse rounded-md w-full border border-slate-200/50" />
+            ) : patientMode === 'existing' ? (
               <div className="relative">
                 {!selectedPasienId ? (
                   <div className="relative">
@@ -439,17 +450,36 @@ export default function CheckoutPanel({
           {/* 3. Payment method & catatan */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5 relative">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                <CreditCard className="w-3.5 h-3.5 text-slate-400" /> Metode Bayar
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                <span className="flex items-center gap-1">
+                  <CreditCard className="w-3.5 h-3.5 text-slate-400" /> Metode Bayar
+                </span>
+                {onRefresh && (
+                  <button
+                    type="button"
+                    onClick={onRefresh}
+                    disabled={mounted && loading}
+                    className="p-1 text-[#007A64] hover:text-[#006653] disabled:text-slate-300 rounded transition-colors inline-flex items-center justify-center"
+                    title="Refresh Metode & Pasien"
+                  >
+                    <RotateCw className={`w-3 h-3 ${mounted && loading ? 'animate-spin' : ''}`} />
+                  </button>
+                )}
               </label>
               <div className="relative">
-                <BracketFrame />
-                <select value={selectedMetodeId} onChange={(e) => setSelectedMetodeId(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-[#007A64] text-slate-700 font-bold">
-                  {metodeList.map((m) => (
-                    <option key={m.id} value={m.id}>{m.nama}</option>
-                  ))}
-                </select>
+                {mounted && loading ? (
+                  <div className="h-9 bg-slate-100 animate-pulse rounded-md w-full border border-slate-200/50" />
+                ) : (
+                  <>
+                    <BracketFrame />
+                    <select value={selectedMetodeId} onChange={(e) => setSelectedMetodeId(e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-[#007A64] text-slate-700 font-bold">
+                      {metodeList.map((m) => (
+                        <option key={m.id} value={m.id}>{m.nama}</option>
+                      ))}
+                    </select>
+                  </>
+                )}
               </div>
             </div>
             <div className="space-y-1.5 relative">
@@ -457,9 +487,15 @@ export default function CheckoutPanel({
                 <FileText className="w-3.5 h-3.5 text-slate-400" /> Catatan
               </label>
               <div className="relative">
-                <BracketFrame />
-                <input type="text" placeholder="Optional..." value={catatan} onChange={(e) => setCatatan(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 bg-white rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-[#007A64] text-slate-700 font-medium" />
+                {mounted && loading ? (
+                  <div className="h-9 bg-slate-100 animate-pulse rounded-md w-full border border-slate-200/50" />
+                ) : (
+                  <>
+                    <BracketFrame />
+                    <input type="text" placeholder="Optional..." value={catatan} onChange={(e) => setCatatan(e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-200 bg-white rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-[#007A64] text-slate-700 font-medium" />
+                  </>
+                )}
               </div>
             </div>
           </div>

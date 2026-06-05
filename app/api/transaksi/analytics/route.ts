@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import prisma from '../../../../lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 const BULAN_LABEL = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
 
 export async function GET(request: Request) {
@@ -81,11 +83,12 @@ export async function GET(request: Request) {
     const rekapLayanan: Record<string, { nama: string; kategori: string; jumlah: number; omzet: number }> = {};
     transaksiList.forEach(tx => {
       tx.detailTransaksi.forEach(d => {
-        const key = d.terapi.id.toString();
+        // Guard: item manual memiliki terapi = null, gunakan fallback
+        const key = d.terapi ? d.terapi.id.toString() : `manual-${d.namaManual || 'Item'}`;
         if (!rekapLayanan[key]) {
           rekapLayanan[key] = {
-            nama: d.terapi.nama,
-            kategori: d.terapi.kategori.nama,
+            nama: d.terapi ? d.terapi.nama : (d.namaManual || 'Tindakan Manual'),
+            kategori: (d.terapi && d.terapi.kategori) ? d.terapi.kategori.nama : 'Lainnya / Manual',
             jumlah: 0,
             omzet: 0,
           };

@@ -60,9 +60,9 @@ export default function LaporanPage() {
     setLoading(true);
     try {
       const [resRekap, resTx, resMet] = await Promise.all([
-        fetch(`/api/transaksi?rekap=true&startDate=${startDate}&endDate=${endDate}`),
-        fetch(`/api/transaksi?startDate=${startDate}&endDate=${endDate}`),
-        fetch('/api/metode'),
+        fetch(`/api/transaksi?rekap=true&startDate=${startDate}&endDate=${endDate}`, { cache: 'no-store' }),
+        fetch(`/api/transaksi?startDate=${startDate}&endDate=${endDate}`, { cache: 'no-store' }),
+        fetch('/api/metode', { cache: 'no-store' }),
       ]);
       if (!resRekap.ok || !resTx.ok || !resMet.ok) throw new Error('DB Error');
       const [dataRekap, dataTx, dataMet] = await Promise.all([resRekap.json(), resTx.json(), resMet.json()]);
@@ -120,7 +120,7 @@ export default function LaporanPage() {
       // Ambil data lengkap dengan breakdownKategori sebelum ekspor
       let rekapFull = rekap;
       if (!isMock) {
-        const res = await fetch(`/api/transaksi?rekap=true&startDate=${startDate}&endDate=${endDate}`);
+        const res = await fetch(`/api/transaksi?rekap=true&startDate=${startDate}&endDate=${endDate}`, { cache: 'no-store' });
         if (res.ok) rekapFull = await res.json();
       }
       exportLaporanToExcel({

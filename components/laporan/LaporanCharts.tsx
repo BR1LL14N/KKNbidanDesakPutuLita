@@ -398,7 +398,7 @@ export default function LaporanCharts() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`/api/transaksi/analytics?year=${selectedYear}`)
+    fetch(`/api/transaksi/analytics?year=${selectedYear}`, { cache: 'no-store' })
       .then(res => {
         if (!res.ok) throw new Error('DB error');
         return res.json();

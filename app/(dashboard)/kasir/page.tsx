@@ -56,15 +56,15 @@ export default function KasirPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [successInvoice, setSuccessInvoice] = useState<any | null>(null);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (showSkeleton = true) => {
+    if (showSkeleton) setLoading(true);
     setErrorMessage('');
     try {
       const [resKat, resTer, resPas, resMet] = await Promise.all([
-        fetch('/api/kategori'),
-        fetch('/api/terapi?onlyActive=true'),
-        fetch('/api/pasien'),
-        fetch('/api/metode?onlyActive=true'),
+        fetch('/api/kategori', { cache: 'no-store' }),
+        fetch('/api/terapi?onlyActive=true', { cache: 'no-store' }),
+        fetch('/api/pasien', { cache: 'no-store' }),
+        fetch('/api/metode?onlyActive=true', { cache: 'no-store' }),
       ]);
       if (!resKat.ok || !resTer.ok || !resPas.ok || !resMet.ok) throw new Error('API fetch failed');
       const [dataKat, dataTer, dataPas, dataMet] = await Promise.all([
@@ -75,18 +75,29 @@ export default function KasirPage() {
       setPasienList(dataPas);
       setMetodeList(dataMet.filter((m: any) => m.aktif));
       setIsMock(false);
-      setLoading(false);
+      if (showSkeleton) setLoading(false);
     } catch {
       setIsMock(true);
       setKategoriList(MOCK_KATEGORI);
       setTerapiList(MOCK_TERAPI);
       setPasienList(MOCK_PASIEN);
       setMetodeList(MOCK_METODE);
-      setLoading(false);
+      if (showSkeleton) setLoading(false);
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    fetchData();
+
+    const handleFocus = () => {
+      // Re-fetch data silently without trigger skeleton flash for active users
+      fetchData(false);
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
 
   // Cart operations
   const addToCart = (terapi: any) => {
@@ -269,6 +280,8 @@ export default function KasirPage() {
           metodeList={metodeList}
           isSubmitting={isSubmitting}
           errorMessage={errorMessage}
+          loading={loading}
+          onRefresh={() => fetchData(true)}
           onUpdateQty={updateCartQty}
           onRemove={removeFromCart}
           onUpdatePrice={updateCartPrice}

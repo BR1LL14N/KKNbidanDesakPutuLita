@@ -33,9 +33,12 @@ export default function MetodePembayaranTable({
   const [formError, setFormError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [localMetode, setLocalMetode] = useState<Metode[]>(metodeList);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Sync when parent metodeList changes
-  useState(() => { setLocalMetode(metodeList); });
+  useEffect(() => {
+    setLocalMetode(metodeList);
+  }, [metodeList]);
 
   const showSuccess = (msg: string) => {
     setSuccessMsg(msg);
@@ -79,6 +82,7 @@ export default function MetodePembayaranTable({
 
     const url = editId ? `/api/metode/${editId}` : '/api/metode';
     const method = editId ? 'PUT' : 'POST';
+    setIsSaving(true);
     try {
       const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const data = await res.json();
@@ -88,6 +92,8 @@ export default function MetodePembayaranTable({
       onRefresh();
     } catch (err: any) {
       setFormError(err.message);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -255,11 +261,12 @@ export default function MetodePembayaranTable({
               </div>
 
               <div className="pt-4 border-t border-slate-100 flex justify-end gap-2.5">
-                <button type="button" onClick={closeForm} className="px-4 py-2.5 border border-slate-200 text-slate-500 hover:bg-slate-50 rounded-md font-bold transition-all">
+                <button type="button" onClick={closeForm} disabled={isSaving} className="px-4 py-2.5 border border-slate-200 text-slate-500 hover:bg-slate-50 rounded-md font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                   Batal
                 </button>
-                <button type="submit" className="px-5 py-2.5 bg-[#007A64] hover:bg-[#006653] text-white rounded-md font-black uppercase tracking-wider shadow-sm transition-all">
-                  Simpan Metode
+                <button type="submit" disabled={isSaving} className="px-5 py-2.5 bg-[#007A64] hover:bg-[#006653] text-white rounded-md font-black uppercase tracking-wider shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                  {isSaving && <span className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent" />}
+                  {isSaving ? 'Menyimpan...' : 'Simpan Metode'}
                 </button>
               </div>
             </form>

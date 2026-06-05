@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getMetodeById, updateMetode, deleteMetode } from '../../../../lib/controllers/metodeController';
 
+export const dynamic = 'force-dynamic';
+
 interface RouteContext {
   params: Promise<{ id: string }>;
 }
