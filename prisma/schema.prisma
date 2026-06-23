@@ -109,3 +109,19 @@ model DetailTransaksi {
   @@map("detail_transaksi")
 }
 
+// ==========================================
+// 7. USER / AKUN PENGGUNA
+// ==========================================
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique @db.VarChar(50)
+  password  String   @db.VarChar(255) // Hashed password
+  nama      String   @db.VarChar(100)
+  role      String   @default("BIDAN") // BIDAN atau STAF
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user")
+}
+
+

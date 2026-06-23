@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
-import { usePathname } from 'next/navigation';
-import { Menu, ChevronRight } from 'lucide-react';
-import { useSidebar } from '@/components/context/SidebarContext';
+import React, { useState, useEffect, useRef } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Menu, ChevronRight, LogOut, Loader2 } from 'lucide-react';
+import { useSidebar } from './context/SidebarContext';
 
 const PAGE_MAP: Record<string, { title: string; breadcrumb: string[] }> = {
   '/dashboard': { title: 'Dashboard', breadcrumb: ['Dashboard'] },
@@ -23,8 +23,68 @@ function getPageMeta(pathname: string) {
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { isOpen, toggle } = useSidebar();
   const meta = getPageMeta(pathname);
+
+  const [user, setUser] = useState<{ nama: string; role: string; username: string } | null>(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Fetch current logged in user details
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user);
+        }
+      } catch (err) {
+        console.error('Gagal mengambil data user aktif:', err);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      const res = await fetch('/api/auth/logout', { method: 'POST' });
+      if (res.ok) {
+        router.push('/login');
+        router.refresh();
+      }
+    } catch (err) {
+      console.error('Gagal keluar:', err);
+    } finally {
+      setLoggingOut(false);
+    }
+  };
+
+  const getInitials = (name: string) => {
+    if (!name) return 'BL';
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
+  };
 
   return (
     <header
@@ -73,24 +133,56 @@ export default function Navbar() {
       </div>
 
       {/* ── Right side ── */}
-      <div className="flex items-center gap-2 shrink-0">
-        {/* ── Profile info ── */}
-        <button className="flex items-center gap-3 group rounded-xl px-2 py-1.5 hover:bg-slate-50 transition-all duration-150">
+      <div className="flex items-center gap-2 shrink-0 relative" ref={dropdownRef}>
+        {/* ── Profile info button ── */}
+        <button
+          onClick={() => setDropdownOpen(!dropdownOpen)}
+          className="flex items-center gap-3 group rounded-xl px-2 py-1.5 hover:bg-slate-50/80 transition-all duration-150 outline-none cursor-pointer"
+        >
           {/* Text — hidden on very small screens */}
           <div className="text-right hidden sm:block">
             <p className="text-xs font-black text-slate-800 group-hover:text-[#007A64] transition-colors leading-none">
-              Bidan Lita
+              {user?.nama || 'Memuat...'}
             </p>
             <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
-              Admin Utama
+              {user?.role === 'BIDAN' ? 'Bidan Utama' : user?.role || 'Pengguna'}
             </p>
           </div>
 
           {/* Avatar */}
           <div className="w-8 h-8 rounded-full bg-[#E6F3F0] border border-[#007A64]/10 text-[#007A64] font-black flex items-center justify-center text-xs shadow-inner group-hover:border-[#007A64]/30 group-hover:bg-[#D0EAE5] transition-all">
-            BL
+            {user ? getInitials(user.nama) : 'BL'}
           </div>
         </button>
+
+        {/* Dropdown Menu */}
+        {dropdownOpen && (
+          <div className="absolute right-0 top-12 w-48 bg-white border border-slate-100 rounded-xl shadow-lg py-2 z-50 animate-fadeIn">
+            {/* Header info in dropdown (mobile support) */}
+            <div className="px-4 py-2 border-b border-slate-50 sm:hidden">
+              <p className="text-xs font-black text-slate-800 truncate">
+                {user?.nama || 'Pengguna'}
+              </p>
+              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                {user?.role === 'BIDAN' ? 'Bidan Utama' : 'Staf'}
+              </p>
+            </div>
+            
+            {/* Logout Action */}
+            <button
+              onClick={handleLogout}
+              disabled={loggingOut}
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-left text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-50 cursor-pointer"
+            >
+              {loggingOut ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <LogOut className="w-3.5 h-3.5" />
+              )}
+              <span>{loggingOut ? 'Keluar...' : 'Keluar'}</span>
+            </button>
+          </div>
+        )}
       </div>
     </header>
   );

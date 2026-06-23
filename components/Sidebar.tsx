@@ -57,8 +57,8 @@ export default function Sidebar() {
             isOpen ? 'px-5 gap-3' : 'px-0 justify-center'
           }`}
         >
-          <div className="w-9 h-9 rounded-xl bg-[#007A64] flex items-center justify-center text-white shadow-sm shadow-teal-700/10 shrink-0">
-            <Heart className="w-4 h-4 fill-current" />
+          <div className="w-10 h-10 bg-white border border-slate-150 rounded-xl flex items-center justify-center p-0.5 shadow-sm shrink-0">
+            <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
           </div>
 
           {/* Brand text — hidden when collapsed */}

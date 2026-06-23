@@ -1,7 +1,15 @@
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { PrismaClient } = require('@prisma/client');
 const { PrismaMariaDb } = require('@prisma/adapter-mariadb');
+
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
+  return `${salt}:${hash}`;
+}
+
 
 // 1. Membaca variabel DATABASE_URL dari berkas .env secara manual
 let databaseUrl = '';
@@ -60,6 +68,7 @@ async function main() {
   await prisma.kategoriTerapi.deleteMany({});
   await prisma.pasien.deleteMany({});
   await prisma.metodePembayaran.deleteMany({});
+  await prisma.user.deleteMany({});
 
   console.log('Database telah dibersihkan.');
 
@@ -192,8 +201,19 @@ async function main() {
 
   console.log('Pasien berhasil di-seed.');
 
+  // Seed default Admin User
+  await prisma.user.create({
+    data: {
+      username: 'bidanlita',
+      password: hashPassword('lita1234'),
+      nama: 'Bidan Lita',
+      role: 'BIDAN'
+    }
+  });
+  console.log('User default (bidanlita) berhasil di-seed.');
+
   console.log('--- SEEDING SELESAI ---');
-  console.log('Data master (Pasien, Metode Pembayaran, Kategori Terapi, Katalog Terapi) berhasil di-seed (Tanpa Transaksi).');
+  console.log('Data master (Pasien, Metode Pembayaran, Kategori Terapi, Katalog Terapi, User) berhasil di-seed (Tanpa Transaksi).');
 }
 
 main()
