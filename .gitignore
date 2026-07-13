@@ -68,3 +68,7 @@ desktop.ini
 .project
 .classpath
 .settings/
+/database.sql
+/database_utf8.sql
+/prisma-fix.zip
+/upload.zip
