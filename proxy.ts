@@ -5,15 +5,13 @@ import { verifySessionToken, createSessionToken } from './lib/auth';
 // Jalankan di Node.js runtime agar modul 'crypto' dari lib/auth bisa digunakan
 export const runtime = 'nodejs';
 
-// Durasi sesi: 4 jam dalam milidetik
-const SESSION_DURATION_MS = 4 * 60 * 60 * 1000;
-// Durasi sesi dalam detik (untuk maxAge cookie)
+// Durasi sesi dalam detik (untuk maxAge cookie) — 4 jam
 const SESSION_DURATION_SECONDS = 4 * 60 * 60;
 
 // Rute yang tidak memerlukan autentikasi
 const PUBLIC_PATHS = ['/login', '/api/auth/login'];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 1. Tentukan status lingkungan (development vs production)
@@ -22,7 +20,7 @@ export function middleware(request: NextRequest) {
   // 2. Buat response dasar
   const response = NextResponse.next();
 
-  // ─── Security Headers (sebelumnya di proxy.ts, kini aktif sungguhan) ───
+  // ─── Security Headers ───────────────────────────────────────────────────
   const cspHeader = `
     default-src 'self';
     script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ''};
@@ -43,7 +41,7 @@ export function middleware(request: NextRequest) {
   response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   response.headers.set('X-XSS-Protection', '1; mode=block');
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-  // ─────────────────────────────────────────────────────────────────────────
+  // ────────────────────────────────────────────────────────────────────────
 
   // 3. Proteksi API: Blokir request POST/PUT/DELETE yang bukan JSON
   if (pathname.startsWith('/api')) {
@@ -65,28 +63,28 @@ export function middleware(request: NextRequest) {
         );
       }
     }
-    // Rute API auth tidak perlu dicek sesinya di sini, lanjutkan saja
+    // Rute API tidak perlu dicek sesinya, lanjutkan saja
     return response;
   }
 
-  // 4. Jika rute adalah rute publik (halaman login), tidak perlu cek sesi
+  // 4. Jika rute publik (halaman login), tidak perlu cek sesi
   const isPublicPath = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
   if (isPublicPath) {
     return response;
   }
 
-  // 5. Cek dan perbarui sesi (Sliding Expiration)
+  // 5. Cek dan perbarui sesi (Sliding Expiration 4 jam)
   const sessionToken = request.cookies.get('session')?.value;
 
   if (!sessionToken) {
-    // Tidak ada sesi, tendang ke halaman login
+    // Tidak ada sesi, redirect ke halaman login
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
   const payload = verifySessionToken(sessionToken);
 
   if (!payload) {
-    // Token kedaluwarsa atau tidak valid, hapus cookie dan tendang ke login
+    // Token kedaluwarsa atau tidak valid, hapus cookie dan redirect ke login
     const loginRedirect = NextResponse.redirect(new URL('/login', request.url));
     loginRedirect.cookies.set({
       name: 'session',
@@ -100,7 +98,7 @@ export function middleware(request: NextRequest) {
     return loginRedirect;
   }
 
-  // 6. Token valid → Buat token baru dengan exp yang diperpanjang (Sliding Expiration)
+  // 6. Token valid → Perpanjang waktu sesi (Sliding Expiration)
   const newToken = createSessionToken({
     userId: payload.userId,
     username: payload.username,
@@ -121,7 +119,7 @@ export function middleware(request: NextRequest) {
   return response;
 }
 
-// Konfigurasi pencocokan rute agar middleware tidak memblokir aset statis internal
+// Konfigurasi pencocokan rute agar proxy tidak memblokir aset statis internal
 export const config = {
   matcher: [
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
