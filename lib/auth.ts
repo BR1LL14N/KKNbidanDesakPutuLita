@@ -1,6 +1,8 @@
 import crypto from 'crypto';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'default-secret-sikabid-2026-very-secure';
+// WAJIB: Set JWT_SECRET di environment variables cPanel & GitHub Secrets.
+// Jangan biarkan kosong di production — fallback ini hanya untuk development lokal.
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-only-secret-sikabid-2026';
 
 /**
  * Hash a plain password using PBKDF2.
@@ -36,7 +38,7 @@ export interface SessionPayload {
 export function createSessionToken(payload: SessionPayload): string {
   const payloadStr = JSON.stringify({
     ...payload,
-    exp: Date.now() + 1000 * 60 * 60 * 24 * 7 // 7 days expiration
+    exp: Date.now() + 1000 * 60 * 60 * 4 // 4 jam expiration (Sliding Expiration)
   });
   const encodedPayload = Buffer.from(payloadStr).toString('base64url');
   
