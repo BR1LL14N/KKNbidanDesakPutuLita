@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifySessionToken, createSessionToken } from './lib/auth';
 
-// Jalankan di Node.js runtime agar modul 'crypto' dari lib/auth bisa digunakan
-export const runtime = 'nodejs';
+
 
 // Durasi sesi dalam detik (untuk maxAge cookie) — 4 jam
 const SESSION_DURATION_SECONDS = 4 * 60 * 60;
@@ -118,10 +117,3 @@ export function proxy(request: NextRequest) {
 
   return response;
 }
-
-// Konfigurasi pencocokan rute agar proxy tidak memblokir aset statis internal
-export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
-};
