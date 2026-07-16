@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Edit, Trash2, CreditCard, AlertTriangle, X, Check, Plus } from 'lucide-react';
 import BracketFrame from '@/components/ui/BracketFrame';
+import { ConfirmDialog, useToast, useConfirm } from '@/components/ui/Toast';
 
 interface Metode {
   id: number;
@@ -34,6 +35,10 @@ export default function MetodePembayaranTable({
   const [successMsg, setSuccessMsg] = useState('');
   const [localMetode, setLocalMetode] = useState<Metode[]>(metodeList);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Toast & Confirm Dialog
+  const toast = useToast();
+  const confirmDialog = useConfirm();
 
   // Sync when parent metodeList changes
   useEffect(() => {
@@ -97,12 +102,25 @@ export default function MetodePembayaranTable({
     }
   };
 
-  const handleDelete = (id: number) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus metode pembayaran ini?')) return;
+  const handleDelete = async (id: number) => {
+    const namaMetode = localMetode.find((m) => m.id === id)?.nama ?? 'metode ini';
+    const confirmed = await confirmDialog.confirm({
+      title: `Hapus "${namaMetode}"?`,
+      message: 'Metode pembayaran yang masih memiliki riwayat transaksi tidak dapat dihapus. Nonaktifkan saja jika ingin menyembunyikannya dari daftar pilihan kasir.',
+      confirmLabel: 'Ya, Hapus',
+      cancelLabel: 'Batal',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
+
     if (isMock) {
       const inUse = transaksiList.some((tx) => tx.metodePembayaranId === id);
-      if (inUse) { alert('Gagal menghapus: Metode sudah memiliki riwayat transaksi. Nonaktifkan saja.'); return; }
+      if (inUse) {
+        toast.warning('Tidak bisa dihapus', 'Metode sudah memiliki riwayat transaksi. Nonaktifkan saja.');
+        return;
+      }
       setLocalMetode((prev) => prev.filter((m) => m.id !== id));
+      toast.success('Berhasil dihapus', 'Metode pembayaran telah dihapus (mode simulasi).');
       return;
     }
     fetch(`/api/metode/${id}`, { method: 'DELETE' })
@@ -111,7 +129,7 @@ export default function MetodePembayaranTable({
         if (!res.ok) throw new Error(data.error || 'Gagal menghapus.');
         onRefresh();
       })
-      .catch((err) => alert(`Error: ${err.message}`));
+      .catch((err) => toast.error('Gagal menghapus', err.message));
   };
 
   return (
@@ -273,6 +291,13 @@ export default function MetodePembayaranTable({
           </div>
         </div>
       )}
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        options={confirmDialog.options}
+        onConfirm={confirmDialog.handleConfirm}
+        onCancel={confirmDialog.handleCancel}
+      />
     </div>
   );
 }

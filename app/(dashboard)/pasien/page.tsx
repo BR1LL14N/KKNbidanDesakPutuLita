@@ -5,6 +5,7 @@ import MockBanner from '@/components/ui/MockBanner';
 import PasienStats from '@/components/pasien/PasienStats';
 import PasienTable from '@/components/pasien/PasienTable';
 import PasienModal from '@/components/pasien/PasienModal';
+import { ToastContainer, ConfirmDialog, useToast, useConfirm } from '@/components/ui/Toast';
 
 interface Pasien {
   id: number;
@@ -31,6 +32,10 @@ export default function PasienPage() {
     pasienHariIni: 0,
     pasienBaruBulanIni: 0,
   });
+
+  // Toast & Confirm Dialog
+  const toast = useToast();
+  const confirmDialog = useConfirm();
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -126,10 +131,20 @@ export default function PasienPage() {
     fetchPasien();
   };
 
-  const handleDelete = (id: number) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus data pasien ini?')) return;
+  const handleDelete = async (id: number) => {
+    const namaPasien = pasienList.find((p) => p.id === id)?.nama ?? 'pasien ini';
+    const confirmed = await confirmDialog.confirm({
+      title: `Hapus Data "${namaPasien}"?`,
+      message: 'Data pasien yang sudah dihapus tidak dapat dipulihkan. Pastikan tidak ada riwayat transaksi yang masih aktif terkait pasien ini.',
+      confirmLabel: 'Ya, Hapus Data',
+      cancelLabel: 'Batal',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
+
     if (isMock) {
       setPasienList((prev) => prev.filter((p) => p.id !== id));
+      toast.success('Berhasil dihapus', 'Data pasien telah dihapus dari daftar (mode simulasi).');
       return;
     }
     fetch(`/api/pasien/${id}`, { method: 'DELETE' })
@@ -138,7 +153,7 @@ export default function PasienPage() {
         if (!res.ok) throw new Error(data.error || 'Gagal menghapus.');
         fetchPasien();
       })
-      .catch((err) => alert(`Error: ${err.message}`));
+      .catch((err) => toast.error('Gagal menghapus', err.message));
   };
 
   return (
@@ -183,6 +198,14 @@ export default function PasienPage() {
         onClose={() => setModalOpen(false)}
         onSubmit={handleSubmit}
       />
+
+      {/* Confirm Dialog & Toast */}
+      <ConfirmDialog
+        options={confirmDialog.options}
+        onConfirm={confirmDialog.handleConfirm}
+        onCancel={confirmDialog.handleCancel}
+      />
+      <ToastContainer toasts={toast.toasts} onDismiss={toast.dismiss} />
     </div>
   );
 }

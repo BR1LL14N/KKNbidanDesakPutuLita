@@ -13,6 +13,16 @@ const PUBLIC_PATHS = ['/login', '/api/auth/login'];
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Lewati semua aset statis internal Next.js (CSS, JS chunks, gambar, font, dll.)
+  // Ini menggantikan fungsi 'export const config.matcher' yang tidak diizinkan di proxy.ts
+  if (
+    pathname.startsWith('/_next/') ||
+    pathname.startsWith('/favicon') ||
+    /\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|otf)$/.test(pathname)
+  ) {
+    return NextResponse.next();
+  }
+
   // 1. Tentukan status lingkungan (development vs production)
   const isDev = process.env.NODE_ENV === 'development';
 
