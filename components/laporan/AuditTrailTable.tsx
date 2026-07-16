@@ -213,7 +213,7 @@ export default function AuditTrailTable({ transaksiList, loading, startDate, end
                 <th className="py-3 px-4">Tanggal & Jam</th>
                 <th className="py-3 px-4">Pasien & Layanan</th>
                 <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4">Metode</th>
+                <th className="py-3 px-4 hidden md:table-cell">Metode</th>
                 <th className="py-3 px-4 text-right">Omzet (Rp)</th>
                 <th className="py-3 px-4 text-center">Detail</th>
               </tr>
@@ -250,7 +250,7 @@ export default function AuditTrailTable({ transaksiList, loading, startDate, end
                             {!isBelumBayar ? 'LUNAS' : 'BELUM BAYAR'}
                           </span>
                         </td>
-                        <td className="py-4 px-4 font-bold text-slate-500">{tx.metodePembayaran?.nama}</td>
+                        <td className="py-4 px-4 font-bold text-slate-500 hidden md:table-cell">{tx.metodePembayaran?.nama}</td>
                         <td className="py-4 px-4 text-right text-slate-800 font-black">{formatRupiah(tx.totalHarga)}</td>
                         <td className="py-4 px-4 text-center">
                           <button

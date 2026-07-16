@@ -138,9 +138,9 @@ export default function PasienTable({
             <thead>
               <tr className="bg-slate-50/30 text-slate-400 uppercase text-[9px] font-extrabold tracking-wider border-b border-slate-100">
                 <th className="py-3.5 px-4">Pasien</th>
-                <th className="py-3.5 px-4">Tanggal Lahir</th>
-                <th className="py-3.5 px-4">Alamat</th>
-                <th className="py-3.5 px-4">Tgl Registrasi</th>
+                <th className="py-3.5 px-4 hidden md:table-cell">Tanggal Lahir</th>
+                <th className="py-3.5 px-4 hidden lg:table-cell">Alamat</th>
+                <th className="py-3.5 px-4 hidden md:table-cell">Tgl Registrasi</th>
                 <th className="py-3.5 px-4 text-center">Aksi</th>
               </tr>
             </thead>
@@ -169,15 +169,15 @@ export default function PasienTable({
                           </div>
                         </div>
                       </td>
-                      <td className="py-4 px-4 font-semibold text-slate-600">
+                      <td className="py-4 px-4 font-semibold text-slate-600 hidden md:table-cell">
                         {pasien.tanggalLahir
                           ? new Date(pasien.tanggalLahir).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
                           : 'Tidak diisi (Pasien Umum)'}
                       </td>
-                      <td className="py-4 px-4 max-w-xs truncate font-medium text-slate-500">
+                      <td className="py-4 px-4 max-w-xs truncate font-medium text-slate-500 hidden lg:table-cell">
                         {pasien.alamat || 'Tidak diisi'}
                       </td>
-                      <td className="py-4 px-4 text-slate-400 font-semibold">
+                      <td className="py-4 px-4 text-slate-400 font-semibold hidden md:table-cell">
                         {new Date(pasien.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </td>
                       <td className="py-4 px-4 text-center space-x-1 shrink-0">

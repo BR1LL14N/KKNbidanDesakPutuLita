@@ -628,11 +628,11 @@ export default function RiwayatPasienTable({
           <thead>
             <tr className="bg-slate-50/50 text-slate-400 uppercase text-[9px] font-extrabold tracking-wider border-b border-slate-100">
               <th className="py-3 px-4">Tanggal & Jam</th>
-              <th className="py-3 px-4">No. Invoice</th>
+              <th className="py-3 px-4 hidden md:table-cell">No. Invoice</th>
               <th className="py-3 px-4">Tindakan Medis / Item</th>
               <th className="py-3 px-4 text-right">Total Biaya</th>
-              <th className="py-3 px-4">Metode Bayar</th>
-              <th className="py-3 px-4 text-center">Interval Kunjungan</th>
+              <th className="py-3 px-4 hidden md:table-cell">Metode Bayar</th>
+              <th className="py-3 px-4 text-center hidden md:table-cell">Interval Kunjungan</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -661,7 +661,7 @@ export default function RiwayatPasienTable({
                         </div>
                       </div>
                     </td>
-                    <td className="py-3 px-4 font-mono font-bold text-slate-500 uppercase tracking-tight">
+                    <td className="py-3 px-4 font-mono font-bold text-slate-500 uppercase tracking-tight hidden md:table-cell">
                       {tx.nomorInvoice || `INV/TX-${tx.id}`}
                     </td>
                     <td className="py-3 px-4">
@@ -679,13 +679,13 @@ export default function RiwayatPasienTable({
                     <td className="py-3 px-4 text-right font-black text-slate-800">
                       {formatRupiah(tx.totalHarga)}
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 hidden md:table-cell">
                       <div className="flex items-center gap-1.5 font-bold text-slate-500">
                         <CreditCard className="w-3.5 h-3.5 text-slate-400 print:hidden" />
                         {tx.metodePembayaran?.nama || 'Tunai'}
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-center">
+                    <td className="py-3 px-4 text-center hidden md:table-cell">
                       <span
                         className={`inline-block text-[10px] font-extrabold px-2.5 py-1 rounded-full print:bg-transparent print:p-0 print:text-xs ${
                           intervals[tx.id] === 'Kunjungan Awal'

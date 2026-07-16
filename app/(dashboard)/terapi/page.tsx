@@ -514,7 +514,7 @@ export default function TerapiPage() {
                 <thead>
                   <tr className="bg-slate-50/50 text-slate-400 uppercase text-[10px] font-bold tracking-wider border-b border-slate-100">
                     <th className="py-4 px-6">Nama Layanan / Tindakan</th>
-                    <th className="py-4 px-6">Kategori</th>
+                    <th className="py-4 px-6 hidden md:table-cell">Kategori</th>
                     <th className="py-4 px-6 text-right">Tarif Jual</th>
                     <th className="py-4 px-6 text-center">Status</th>
                     <th className="py-4 px-6 text-right">Aksi</th>
@@ -539,7 +539,7 @@ export default function TerapiPage() {
                               )}
                             </div>
                           </td>
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-6 hidden md:table-cell">
                             <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
                               {terapi.kategori?.nama || 'UMUM'}
                             </span>

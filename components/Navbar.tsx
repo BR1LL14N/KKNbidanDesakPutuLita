@@ -94,7 +94,7 @@ export default function Navbar() {
         border border-white/50
         rounded-2xl
         flex items-center justify-between
-        px-6 gap-4
+        px-3 sm:px-6 gap-2 sm:gap-4
         shadow-[0_8px_32px_0_rgba(15,23,42,0.06)]
         transition-all duration-300
       `}

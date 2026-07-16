@@ -17,7 +17,7 @@ export default function DashboardInnerClient({ children }: { children: React.Rea
         <Navbar />
 
         {/* Page content */}
-        <main className="flex-1 px-6 pb-6 pt-24 overflow-y-auto">
+        <main className="flex-1 px-3 sm:px-6 pb-6 pt-24 overflow-y-auto">
           <div className="max-w-[1400px] w-full">
             {children}
           </div>

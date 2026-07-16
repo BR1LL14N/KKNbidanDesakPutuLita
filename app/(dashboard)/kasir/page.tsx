@@ -266,28 +266,32 @@ export default function KasirPage() {
       {/* Two-column POS layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Katalog — manages its own search/filter state internally */}
-        <TerapiKatalog
-          terapiList={terapiList}
-          kategoriList={kategoriList}
-          loading={loading}
-          onAddToCart={addToCart}
-        />
+        <div className="col-span-1 lg:col-span-7">
+          <TerapiKatalog
+            terapiList={terapiList}
+            kategoriList={kategoriList}
+            loading={loading}
+            onAddToCart={addToCart}
+          />
+        </div>
 
         {/* Checkout panel — manages its own patient/payment form state */}
-        <CheckoutPanel
-          cart={cart}
-          pasienList={pasienList}
-          metodeList={metodeList}
-          isSubmitting={isSubmitting}
-          errorMessage={errorMessage}
-          loading={loading}
-          onRefresh={() => fetchData(true)}
-          onUpdateQty={updateCartQty}
-          onRemove={removeFromCart}
-          onUpdatePrice={updateCartPrice}
-          onAddManualItem={addManualItem}
-          onCheckout={handleCheckout}
-        />
+        <div className="col-span-1 lg:col-span-5">
+          <CheckoutPanel
+            cart={cart}
+            pasienList={pasienList}
+            metodeList={metodeList}
+            isSubmitting={isSubmitting}
+            errorMessage={errorMessage}
+            loading={loading}
+            onRefresh={() => fetchData(true)}
+            onUpdateQty={updateCartQty}
+            onRemove={removeFromCart}
+            onUpdatePrice={updateCartPrice}
+            onAddManualItem={addManualItem}
+            onCheckout={handleCheckout}
+          />
+        </div>
       </div>
 
       {/* Invoice modal — only mounts on success */}
