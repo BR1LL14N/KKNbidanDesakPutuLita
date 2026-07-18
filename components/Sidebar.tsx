@@ -45,9 +45,11 @@ export default function Sidebar() {
         className={`
           fixed top-0 left-0 z-40 h-screen flex flex-col bg-white border-r border-slate-200/60
           transition-all duration-300 ease-in-out will-change-transform
-          ${isOpen ? 'w-64 translate-x-0' : 'w-16 translate-x-0'}
-          lg:relative lg:z-auto lg:translate-x-0
-          ${!isOpen && '-translate-x-full lg:translate-x-0'}
+          lg:relative lg:z-auto
+          ${isOpen
+            ? 'w-64 translate-x-0'
+            : '-translate-x-full lg:translate-x-0 lg:w-16'
+          }
         `}
         suppressHydrationWarning
       >
