@@ -7,13 +7,8 @@ const outfit = Outfit({
 });
 
 export const metadata = {
-  title: "SI-KABID | Sistem Informasi Kasir & Keuangan Bidan",
+  title: "SI-KABID",
   description: "Sistem Informasi Kasir dan Manajemen Keuangan Bidan berbasis web.",
-  icons: {
-    icon: '/logo.png',
-    shortcut: '/logo.png',
-    apple: '/logo.png',
-  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
